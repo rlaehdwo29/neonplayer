@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/transparent100"
+    android:padding="3pt">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        
+    <ImageView
+        android:id="@+id/img_viewpager_album"
+        android:layout_width="20pt"
+        android:layout_height="20pt"
+        android:src="@drawable/testalbum"
+        android:scaleType="fitXY"
+        android:layout_alignParentLeft="true"/>
+        
+        <LinearLayout
+            android:id="@+id/container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_toRightOf="@id/img_viewpager_album"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="3pt"
+            android:layout_marginLeft="3pt">
+        <TextView
+            android:id="@+id/tv_viewpager_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="앨범 제목"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textSize="6pt"
+            android:textColor="@color/white_color"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_viewpager_artist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="가수명"
+            android:textSize="4.5pt"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textColor="@color/white_color"
+            android:layout_below="@id/tv_viewpager_title"/>
+        </LinearLayout>
+            <ImageView
+                android:id="@+id/img_play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:scaleType="matrix"
+                android:src="@drawable/playbutton"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginLeft="5pt"/>
+    </RelativeLayout>
+</LinearLayout>

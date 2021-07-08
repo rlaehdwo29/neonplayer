@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent100">
+
+
+    <include layout="@layout/video_background"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <include
+            android:id="@+id/appbar"
+            layout="@layout/appbar_musiclist" />
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/vp_musiclist"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_below="@+id/appbar"
+            android:layout_marginTop="5pt"
+            android:paddingRight="5pt"
+            android:paddingLeft="5pt"/>
+    </RelativeLayout>
+</FrameLayout>

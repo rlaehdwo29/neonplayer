@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="3pt"
+    android:background="@color/main_color">
+
+    <ImageView
+        android:id="@+id/noti_album"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:src="@drawable/testalbum"
+        android:scaleType="fitXY"
+        android:padding="3pt"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/noti_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="제목"
+            android:textColor="@color/white_color"
+            android:textSize="6pt"
+            android:textStyle="bold"
+            android:layout_weight="1"
+            android:gravity="center|left"
+            android:singleLine="true"
+            android:ellipsize="marquee"/>
+
+        <TextView
+            android:id="@+id/noti_artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="아티스트"
+            android:textColor="@color/lighr_gray"
+            android:textSize="5pt"
+            android:textStyle="bold"
+            android:layout_weight="1"
+            android:gravity="center|left"
+            android:singleLine="true"
+            android:ellipsize="marquee"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_weight="2"
+        android:layout_gravity="center">
+
+        <ImageView
+            android:id="@+id/noti_prev"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_media_previous"
+            android:scaleType="centerCrop"
+            android:layout_weight="1"
+            android:paddingRight="7pt"
+            android:paddingLeft="7pt"/>
+
+        <ImageView
+            android:id="@+id/noti_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_media_play"
+            android:scaleType="centerCrop"
+            android:layout_weight="1"
+            android:paddingRight="7pt"
+            android:paddingLeft="7pt"/>
+
+        <ImageView
+            android:id="@+id/noti_pause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_media_pause"
+            android:scaleType="centerCrop"
+            android:layout_weight="1"
+            android:paddingRight="7pt"
+            android:paddingLeft="7pt"/>
+
+        <ImageView
+            android:id="@+id/noti_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_media_next"
+            android:scaleType="centerCrop"
+            android:layout_weight="1"
+            android:paddingRight="7pt"
+            android:paddingLeft="7pt"/>
+
+    </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="loginviewmodel"
+            type="com.dongdong.neonplayer.viewmodel.LoginViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".activity.LoginActivity">
+
+        <include layout="@layout/video_background"/>
+
+        <ImageView
+            android:id="@+id/app_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/app_logo"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.1"
+            app:layout_constraintStart_toEndOf="@+id/app_logo"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.4" />
+
+
+        <LinearLayout
+            android:id="@+id/ly_area"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/app_logo"
+            app:layout_constraintVertical_bias="0.0"
+            tools:layout_editor_absoluteX="0dp"
+            android:gravity="center"
+            android:layout_marginLeft="15pt"
+            android:layout_marginRight="15pt">
+
+            <EditText
+                android:id="@+id/login_userid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editbox_background"
+                android:ems="10"
+                android:hint="ID"
+                android:inputType="textMultiLine|textNoSuggestions|textUri"
+                android:padding="10dp"
+                android:singleLine="true"
+                android:lines="1"
+                android:textColor="@color/white_color"
+                android:textColorHint="@color/lighr_gray"
+                app:addTextChangedListener = "@{loginviewmodel.IdTextWacher()}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/app_logo"
+                app:layout_constraintVertical_bias="0.132"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp" />
+
+            <EditText
+                android:id="@+id/login_userpw"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/editbox_background"
+                android:ems="10"
+                android:hint="PassWord"
+                android:singleLine="true"
+                android:lines="1"
+                android:inputType="textPassword|textNoSuggestions|textMultiLine"
+                android:padding="10dp"
+                android:textColor="@color/white_color"
+                android:textColorHint="@color/lighr_gray"
+                app:addTextChangedListener="@{loginviewmodel.passTextWacher()}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/userid"
+                app:layout_constraintVertical_bias="0.052" />
+
+            <Button
+                android:id="@+id/btn_login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Login"
+                android:textColor="@color/white_color"
+                android:background="@drawable/click_button"
+                android:onClick="@{loginviewmodel::onLoginBtnClick}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.498"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/userpw"
+                app:layout_constraintVertical_bias="0.1"
+                android:layout_marginTop="20dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="15dp"
+                android:layout_marginRight="20dp"
+                android:gravity="right">
+
+            <TextView
+                android:id="@+id/find_userinfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="계정정보 찾기"
+                android:textColor="@color/white_color"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="    |    "
+                android:textColor="@color/white_color"/>
+
+             <TextView
+                 android:id="@+id/user_join"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:text="회원가입"
+                 android:textColor="@color/white_color"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "509127266473",
+    "project_id": "snsproject-fb39b",
+    "storage_bucket": "snsproject-fb39b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:509127266473:android:7798c3ccd39e928e2fd9b8",
+        "android_client_info": {
+          "package_name": "com.dongdong.neonplayer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "509127266473-lm05rkbl8ifdlh7c5r893gbg77cgfkf4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiQp3Ca_U2j1OCY12MU_1Xgr_XW9gUcJ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "509127266473-lm05rkbl8ifdlh7c5r893gbg77cgfkf4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white_color">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <include layout="@layout/appbar_home"/>
+
+        <!--상단 최신 음악 컨텐츠-->
+        <LinearLayout
+            android:id="@+id/top_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10pt"
+            android:layout_marginRight="3pt"
+            android:layout_marginLeft="3pt">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="따끈따끈 신상 음악"
+            android:textStyle="bold"
+            android:textSize="10pt"
+            android:textColor="@color/black_color"/>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_gravity="left">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="전체"
+                    android:textSize="6pt"
+                    android:textColor="@color/black_color"
+                    android:gravity="center"
+                    android:layout_marginRight="5pt"
+                    android:layout_marginLeft="5pt"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="국내"
+                    android:textSize="6pt"
+                    android:textColor="@color/black_color"
+                    android:gravity="center"
+                    android:layout_marginRight="5pt"
+                    android:layout_marginLeft="5pt"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="해외"
+                    android:textSize="6pt"
+                    android:textColor="@color/black_color"
+                    android:gravity="center"
+                    android:layout_marginLeft="5pt"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/today_new_music_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5pt"/>
+        </LinearLayout>
+
+        <!--중단 -->
+        <LinearLayout
+            android:id="@+id/middle_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10pt"
+                android:layout_marginRight="3pt"
+                android:layout_marginLeft="3pt">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="최신 음악"
+                    android:textStyle="bold"
+                    android:textSize="10pt"
+                    android:textColor="@color/black_color"/>
+
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_gravity="left">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="국내"
+                        android:textSize="6pt"
+                        android:textColor="@color/black_color"
+                        android:gravity="center"
+                        android:layout_marginRight="5pt"
+                        android:layout_marginLeft="5pt"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="해외"
+                        android:textSize="6pt"
+                        android:textColor="@color/black_color"
+                        android:gravity="center"
+                        android:layout_marginLeft="5pt"/>
+
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="전체보기"
+                    android:textSize="6pt"
+                    android:textColor="@color/black_color"
+                    android:gravity="center"
+                    android:layout_gravity="left"/>
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/new_music_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5pt" />
+        </LinearLayout>
+
+        <!--하단 배너-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10pt"
+                android:layout_marginRight="3pt"
+                android:layout_marginLeft="3pt">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EVENT"
+                    android:textStyle="bold"
+                    android:textSize="10pt"
+                    android:textColor="@color/black_color"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="전체보기"
+                    android:textSize="6pt"
+                    android:textColor="@color/black_color"
+                    android:gravity="center"
+                    android:layout_gravity="left"/>
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/banner_img_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5pt" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

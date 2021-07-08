@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--Email List-->
+    <string-array name="email">
+        <item>naver</item>
+        <item>google</item>
+        <item >daum</item>
+        <item>nate</item>
+        <item>hotmail</item>
+    </string-array>
+
+    <!--First PhoneNumber-->
+    <string-array name="phone_type">
+        <item>SKT</item>
+        <item>LG U+</item>
+        <item>KT</item>
+    </string-array>
+
+</resources>

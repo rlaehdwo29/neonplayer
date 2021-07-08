@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <include
+        android:id="@+id/appbar"
+        layout="@layout/appbar_search"/>
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchview_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/appbar"
+        app:searchIcon="@drawable/search"
+        app:closeIcon="@drawable/close"
+        app:iconifiedByDefault="false"
+        app:queryHint="필요한 곡을 검색하세요."
+        app:queryBackground="@null"
+        android:layout_marginRight="5pt"
+        android:layout_marginLeft="5pt"/>
+
+    <TextView
+        android:id="@+id/tv_catagory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/searchview_bar"
+        android:text="카테고리"
+        android:textStyle="bold"
+        android:textColor="@color/black_color"
+        android:textSize="10pt"
+        android:layout_marginRight="5pt"
+        android:layout_marginLeft="5pt"
+        android:layout_marginTop="10pt"
+        android:gravity="center"/>
+
+    <View
+        android:id="@+id/line1"
+        android:layout_below="@+id/tv_catagory"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginRight="5pt"
+        android:layout_marginLeft="5pt"
+        android:layout_marginTop="2pt"
+        android:layout_marginBottom="2pt"
+        android:background="@color/lighr_gray"/>
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/line1"
+        android:rowCount="4"
+        android:columnCount="3"
+        android:layout_marginLeft="5pt"
+        android:layout_marginRight="5pt">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="0"
+            android:layout_column="0"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_pop"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60"
+                    android:text="POP"
+                    android:layout_gravity="bottom|center"
+                    android:textSize="7pt"
+                    android:textColor="@color/white_color"
+                    android:textStyle="bold"/>
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_blade"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60" android:text="발라드"
+                    android:layout_gravity="bottom|center"
+                    android:textSize="7pt"
+                    android:textColor="@color/white_color"
+                    android:textStyle="bold"/>
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="0"
+            android:layout_column="2"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_ost"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60" android:text="OST"
+                    android:layout_gravity="bottom|center"
+                    android:textSize="7pt"
+                    android:textColor="@color/white_color"
+                    android:textStyle="bold"/>
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="1"
+            android:layout_column="0"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_dance"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60"
+                    android:text="댄스"
+                    android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="1"
+            android:layout_column="1"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_idol"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60" android:text="아이돌"
+                    android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="1"
+            android:layout_column="2"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_kids"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60" android:text="키즈"
+                    android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="2"
+            android:layout_column="0"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_indi"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="85dp"
+                    android:background="@color/transparent60"
+                    android:gravity="center"
+                    android:text="인디"
+                    android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="2"
+            android:layout_column="1"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_rnb"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60"
+                    android:text="국내 RnB"
+                    android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="2"
+            android:layout_column="2"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_rock"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60" android:text="해외락"
+                    android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+록
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="3"
+            android:layout_column="0"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_elec"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60"
+                    android:text="해외일렉"
+                   android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="3"
+            android:layout_column="1"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_hiphap"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60" android:text="해외 힙합"
+                    android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_backgound"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_row="3"
+            android:layout_column="2"
+            android:layout_gravity="center"
+            android:layout_marginTop="8pt"
+            android:layout_marginBottom="8pt">
+
+            <FrameLayout
+                android:layout_width="40pt"
+                android:layout_height="40pt">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_clasic"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@color/transparent60"
+                    android:text="클래식"
+                    android:textColor="@color/white_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+
+
+    </GridLayout>
+
+
+</RelativeLayout>
+
+</FrameLayout>
