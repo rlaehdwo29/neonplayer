@@ -26,7 +26,7 @@
         android:id="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:background="@color/lighr_gray"
+        android:background="@color/light_gray_3"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
         app:layout_constraintTop_toBottomOf="@+id/title"
         app:layout_constraintVertical_bias="0.1" />
@@ -75,7 +75,7 @@
                 android:privateImeOptions="defaultInputmode=korean"
                 android:singleLine="true"
                 android:textColor="@color/white_color"
-                android:textColorHint="@color/lighr_gray"
+                android:textColorHint="@color/light_gray_3"
                 android:textSize="6pt" />
 
         </LinearLayout>
@@ -120,7 +120,7 @@
                         android:inputType="number"
                         android:singleLine="true"
                         android:textColor="@color/white_color"
-                        android:textColorHint="@color/lighr_gray"
+                        android:textColorHint="@color/light_gray_3"
                         android:textSize="6pt" />
 
                     <TextView
@@ -143,7 +143,7 @@
                         android:inputType="numberPassword"
                         android:singleLine="true"
                         android:textColor="@color/white_color"
-                        android:textColorHint="@color/lighr_gray"
+                        android:textColorHint="@color/light_gray_3"
                         android:textSize="6pt" />
 
                 </LinearLayout>

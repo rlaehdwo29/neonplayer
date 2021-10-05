@@ -3,10 +3,4 @@
 
     <item android:drawable="@android:color/holo_blue_bright"/>
 
-  <!--  <item>
-        <bitmap
-            android:src="@drawable/"
-            android:gravity="center" />
-    </item>-->
-
 </layer-list>

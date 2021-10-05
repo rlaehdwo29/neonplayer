@@ -12,7 +12,9 @@
     <color name="dark_seegreen">#008B8B</color>
     <color name="holo_blue_bright">#ff00ddff</color>
     <color name="dark_navy">#2b353e</color>
-    <color name="lighr_gray">#BDBDBD</color>
+    <color name="light_gray_3">#BDBDBD</color>
+    <color name="light_gray_1">#EEEEEE</color>
+    <color name="sliver">#C0C0C0</color>
     <color name="transparent100">#00ff0000</color>
     <color name="transparent90">#00e60000</color>
     <color name="transparent80">#cc000000</color>
@@ -22,4 +24,6 @@
     <color name="level1_black">#e6282828</color>
     <color name="main_color">#3fffed</color>
     <color name="darkslategray">#2F4F4F</color>
+    <color name="greenlight">#00ff00</color>
+    <color name="lightyellow">#FFFFE0</color>
 </resources>

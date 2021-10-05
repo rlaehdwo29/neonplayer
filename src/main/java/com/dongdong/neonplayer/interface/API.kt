@@ -1,5 +1,7 @@
 package com.dongdong.neonplayer.`interface`
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.dongdong.neonplayer.data.BannerInfo
 import com.dongdong.neonplayer.data.MusicInfo
 import com.dongdong.neonplayer.data.VideoInfo

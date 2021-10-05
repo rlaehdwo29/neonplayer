@@ -30,6 +30,8 @@ class Music24HtisItemAdapter : RecyclerView.Adapter<Music24HtisItemAdapter.ViewH
     var playData : MusicPlayData? = null
     var mListener  : OnItemClickListener? = null
     var mLongListener   : OnItemLongClickListener? = null
+    var newMusicCheck : Boolean? = false         // true -> 새로운 음악 , false -> 새로운 음악 아님
+
     constructor(){}
 
 
@@ -79,11 +81,23 @@ class Music24HtisItemAdapter : RecyclerView.Adapter<Music24HtisItemAdapter.ViewH
 
             itemView.setOnClickListener { v ->
                 var pos = adapterPosition
-                    Log.d("qwer123456","클릭 포지션$pos // $itemList")
+                if (playData?.play_title != null) {
+                    if (playData?.play_title.equals(itemList?.get(pos)?.album_title) == true) {
+                        newMusicCheck = false
+                    } else {
+                        newMusicCheck = true
+                    }
+                }else{
+                    newMusicCheck = true
+                }
+
+                Log.d("qwer123456","클릭 포지션$pos // ${itemList?.get(pos)} // ${playData?.play_title} // $newMusicCheck")
+
                 playData = MusicPlayData(itemList?.get(pos)?.album_title)
-                Log.d("qwer123456","앨범 타이틀: ${playData?.play_title}}")
+                Log.d("qwer123456","앨범 타이틀: ${playData?.play_title}")
                 var intent = Intent(mcontext, MusicPlayerActivity::class.java)
                 intent.putExtra("playdata",playData)
+                intent.putExtra("newmusiccheck",newMusicCheck!!)
                 mcontext?.startActivity(intent)
 
             }

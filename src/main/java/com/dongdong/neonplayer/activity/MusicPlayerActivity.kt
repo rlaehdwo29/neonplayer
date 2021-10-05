@@ -10,9 +10,7 @@ import android.os.IBinder
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
-import android.widget.SeekBar
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -22,10 +20,12 @@ import com.dongdong.neonplayer.common.Contacts
 import com.dongdong.neonplayer.common.MusicInfoLoadUtil
 import com.dongdong.neonplayer.common.Util
 import com.dongdong.neonplayer.data.*
+import com.dongdong.neonplayer.eventbus.EventBusProvider
 import com.dongdong.neonplayer.room.AppDataBase
 import com.dongdong.neonplayer.room.Entity.MyMusicPlayListEntity
 import com.dongdong.neonplayer.service.MusicEvent
 import com.dongdong.neonplayer.service.MusicService
+import com.google.common.eventbus.EventBus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -37,9 +37,9 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
 
     var playdata : MusicPlayData? = null
     var playList : ArrayList<MyPlayListData>? = null
-    var mMediaPlayer : MediaPlayer? = null
     var tv_title : TextView? = null
     var tv_artist : TextView? = null
+    var down_activity : LinearLayout? = null
     var img_album: ImageView? = null
     var img_playlist : ImageView? = null
     var img_previous : ImageView? = null
@@ -47,7 +47,7 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
     var img_pause : ImageView? = null
     var img_next : ImageView? = null
     var seekBar : SeekBar? = null
-    var isPlaying : Boolean? = true
+    var externalState : Boolean? = null
     var res : ContentResolver? = null
     var position : Int = 0
     var mcontext : Context? = null
@@ -55,6 +55,8 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
     var audio : AudioManager? = null
     var mtv_total_playtime : TextView? = null
     var mtv_state_playtime :TextView? = null
+    var liveTitle : MutableLiveData<String> = MutableLiveData()
+    var liveArtist : MutableLiveData<String> = MutableLiveData()
     var liveTotalPlaytime : MutableLiveData<String> = MutableLiveData()
     var liveStatePlaytime : MutableLiveData<String> = MutableLiveData()
     var mMusicService : MusicService? = null
@@ -62,6 +64,7 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
     var mPlayBack : PlayBack? = null
     var musicservice : MusicService? = null
     var isPause : Boolean = false
+    var newMusicCheck : Boolean? = false         // true -> 새로운 음악 , false -> 새로운 음악 아님
 
     companion object {
         //앨범이 저장되어 있는 경로를 리턴합니다.
@@ -83,16 +86,27 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
             return result
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_musicplayer)
-        mcontext = this
 
+        mcontext = this
         var intent = intent
             if (intent != null) {
-                playdata = intent.getSerializableExtra("playdata") as MusicPlayData
+                if (intent.getSerializableExtra("playdata") != null) {
+                    playdata = intent.getSerializableExtra("playdata") as MusicPlayData
+                    liveTitle.value = Util.getAlbumInfo(playdata?.play_title)?.get(1)
+                    liveArtist.value = Util.getAlbumInfo(playdata?.play_title)?.get(0)
+                }
+                if (intent.getBooleanExtra("newmusiccheck",false) != null){
+                    newMusicCheck = intent.getBooleanExtra("newmusiccheck",false)
+                }
+                if (intent.getBooleanExtra("externalstate",false) != null) {
+                    externalState = intent.getBooleanExtra("externalstate",false)
+                }
             }
-            Log.d(TAG,"받아오는 데이터 = ${playdata!!.play_title}")
+        Log.d(TAG,"받아오는 데이터 = ${playdata?.play_title}")
 
         if (musicservice == null) {
             var intent : Intent = Intent(this,MusicService::class.java)
@@ -102,28 +116,16 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
         res = contentResolver
         setBindId()
         setOnClickEvent()
-        conMusicService()
-        mPlayBack = PlayBack()
-        getMusicFile(playdata!!)
         setLiveData()
+        conMusicService()
+        if (externalState == true){
+            setUI()
+            playTimeUI()
+            ProgressUpdate()?.start()
+        }else {
+            getMusicFile(playdata!!)
+        }
         MusicPlayerRegisterReceiver()
-        if (mMediaPlayer?.isPlaying == true) {
-            img_play?.visibility = View.GONE
-            img_pause?.visibility = View.VISIBLE
-        } else {
-            img_play?.visibility = View.VISIBLE
-            img_pause?.visibility = View.GONE
-        }
-
-        mMediaPlayer?.setOnCompletionListener {
-            MediaPlayer.OnCompletionListener {
-                if (position!!+1 < playList!!.size) {
-                    position++
-                    getMusicFile(playdata!!)
-                }
-            }
-        }
-
     }
 
     override fun onClick(v: View?) {
@@ -131,106 +133,57 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
           R.id.btn_playlist -> {
               //플레이리스트 띄우기
           }
-          R.id.btn_prev -> {
-              if(position-1>=0 ){
-                  position--
-                  var prevIntent = Intent(mcontext,MusicService::class.java)
-                      prevIntent.action = MusicService.ACTION_PLAY_PREVIOUS
-                      prevIntent.putExtra("playdata",playdata)
-                      prevIntent.putExtra("position",getMusicUID())
-                      prevIntent.putExtra("playlist",MusicInfoLoadUtil.myPlayListAll(applicationContext))
-                      prevIntent.putExtra("isplay",mMediaPlayer?.isPlaying)
-                  startService(prevIntent)
-                  seekBar?.progress = 0
-              }
+
+          R.id.down_activity -> {
+              finish()
           }
 
           R.id.btn_play -> {
               img_pause?.visibility = View.VISIBLE
               img_play?.visibility = View.GONE
 
-              mMediaPlayer?.seekTo(mMediaPlayer!!.currentPosition)
-
-              if (isPause == false) {
-                  mMediaPlayer?.pause()
-                  mMediaPlayer?.reset()
-
                   try {
                       Log.d(TAG, "ACTION_PLAY -> ${Util.getParseUri(playdata?.play_title)}")
-                      mMediaPlayer?.setDataSource(applicationContext, Util.getParseUri(playdata?.play_title))
-                      mMediaPlayer?.prepareAsync()
-                      mMediaPlayer?.setOnPreparedListener { mp ->
-                          mp?.start()
-                          isPlaying = true
-                          isPause = false
-                          Log.e(TAG, "ACTION_PLAYSTATE Playing State -> ${mp?.isPlaying}")
                           var playIntent = Intent(mcontext, MusicService::class.java)
                           playIntent.putExtra("playdata", playdata)
                           playIntent.putExtra("position", getMusicUID())
                           playIntent.putExtra("playlist", MusicInfoLoadUtil.myPlayListAll(applicationContext))
-                          playIntent.putExtra("isplay", mMediaPlayer?.isPlaying)
-                          playIntent.putExtra("ispause",isPause)
-                          playIntent.action = MusicService.ACTION_PLAYSTATE
-                          ProgressUpdate().start()
+                          playIntent.action = MusicService.ACTION_PLAY
                           startService(playIntent)
-                      }
                   } catch (e: Exception) {
                       e.printStackTrace()
                   }
-              }else{
-                      mMediaPlayer?.start()
-                      isPause = false
-                      isPlaying = true
-                      var playIntent = Intent(mcontext, MusicService::class.java)
-                      playIntent.putExtra("playdata", playdata)
-                      playIntent.putExtra("position", getMusicUID())
-                      playIntent.putExtra("playlist", MusicInfoLoadUtil.myPlayListAll(applicationContext))
-                      playIntent.putExtra("isplay", mMediaPlayer?.isPlaying)
-                      playIntent.putExtra("ispause",isPause)
-                      playIntent.action = MusicService.ACTION_PLAYSTATE
-                      ProgressUpdate().start()
-                      startService(playIntent)
-              }
           }
 
           R.id.btn_pause -> {
               img_pause?.visibility = View.GONE
               img_play?.visibility = View.VISIBLE
-              mMediaPlayer?.pause()
-              isPause = true
-              isPlaying = false
 
               var pauseIntent = Intent(mcontext,MusicService::class.java)
-                  pauseIntent.putExtra("playdata",playdata)
-                  pauseIntent.putExtra("position",getMusicUID())
-                  pauseIntent.putExtra("playlist",MusicInfoLoadUtil.myPlayListAll(applicationContext))
-                  pauseIntent.putExtra("isplay",mMediaPlayer?.isPlaying)
-                  pauseIntent.putExtra("ispause",isPause)
-                  pauseIntent.action = MusicService.ACTION_PLAYSTATE
-              startService(pauseIntent)
+                  pauseIntent.action = MusicService.ACTION_PAUSE
+                  startService(pauseIntent)
           }
 
           R.id.btn_next -> {
-              Log.d(TAG,"PlayActivity Action Next -> $position // ${playList?.size} // ${getMusicUID()}")
-              if(position+1 < playList!!.size){
-                  position++
-                  var nextIntent = Intent(mcontext,MusicService::class.java)
-                      nextIntent.action = MusicService.ACTION_PLAY_NEXT
-                      nextIntent.putExtra("playdata",playdata)
-                      nextIntent.putExtra("position",getMusicUID()!!+1)
-                      nextIntent.putExtra("playlist",MusicInfoLoadUtil.myPlayListAll(applicationContext))
-                      nextIntent.putExtra("isplay",mMediaPlayer?.isPlaying)
-                  startService(nextIntent)
-                  seekBar?.progress = 0
-              }
+              var nextIntent = Intent(mcontext,MusicService::class.java)
+              nextIntent.action = MusicService.ACTION_PLAY_NEXT
+              nextIntent.putExtra("playdata", playdata)
+              startService(nextIntent)
           }
+
+          R.id.btn_prev -> {
+              var prevIntent = Intent(mcontext,MusicService::class.java)
+              prevIntent.action = MusicService.ACTION_PLAY_PREVIOUS
+              prevIntent.putExtra("playdata", playdata)
+              startService(prevIntent)
+          }
+
       }
     }
 
     fun setBindId(){
-
-        mMediaPlayer = MediaPlayer()
-        Log.d(TAG,"setBindId Player State -> ${mMediaPlayer?.isPlaying}")
+        down_activity = findViewById(R.id.down_activity)
+        down_activity?.setOnClickListener(this)
         tv_title = findViewById(R.id.title)
         tv_title?.isSelected = true
         tv_artist = findViewById(R.id.artist)
@@ -256,47 +209,37 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
 
     fun playMusic(album_title:String,album_artist : String) {
         try {
-            mMediaPlayer?.reset()
-            seekBar?.progress = 0
             tv_title?.text = album_title
             tv_artist?.text = album_artist
 
-            Log.d(TAG, "playMusic -> ${Util.getParseUri(playdata?.play_title)}")
-            mMediaPlayer?.setDataSource(applicationContext, Util.getParseUri(playdata?.play_title))
-            mMediaPlayer?.prepareAsync()
-            mMediaPlayer?.setOnPreparedListener { mp ->
-                mp?.start()
-                isPlaying = true
-                isPause = false
-                Log.e(TAG, "playMusic Playing State -> ${mp?.isPlaying}")
-                var playIntent = Intent(mcontext, MusicService::class.java)
-                playIntent.putExtra("playdata", playdata)
-                playIntent.putExtra("position", getMusicUID())
-                playIntent.putExtra("playlist", MusicInfoLoadUtil.myPlayListAll(applicationContext))
-                playIntent.putExtra("isplay", mp?.isPlaying)
-                playIntent.putExtra("ispause",isPause)
-                playIntent.action = MusicService.ACTION_PLAYSTATE
-                startService(playIntent)
+            Log.e(TAG, "Funtion playMusic() -> ${returnEventBus()?.getMediaPlay()?.isPlaying} // $isPause //$newMusicCheck")
 
-                Log.d(TAG, "playMusic -> ${mMediaPlayer?.isPlaying} // ${mPlayBack?.isPlaying} // ${mPlayBack?.currentTime}")
-                ProgressUpdate().start()
-                setUI()
-            }
-        }
-        catch (e  : Exception) {
+            seekBar?.progress = 0
+
+            Log.d(TAG, "playMusic 1 -> ${Util.getParseUri(playdata?.play_title)}")
+
+            Log.e(TAG, "playMusic Playing State 1 -> ${returnEventBus()?.getMediaPlay()?.isPlaying}")
+            var playIntent = Intent(mcontext, MusicService::class.java)
+            playIntent.putExtra("playdata", playdata)
+            playIntent.putExtra("position", getMusicUID())
+            playIntent.putExtra("playlist", MusicInfoLoadUtil.myPlayListAll(applicationContext))
+            playIntent.action = MusicService.ACTION_PLAY
+            startService(playIntent)
+
+            Log.d(TAG, "playMusic 1 -> ${returnEventBus().getMediaPlay()?.isPlaying} // ${mPlayBack?.isPlaying} // ${mPlayBack?.currentTime}")
+        }catch (e : Exception) {
             e.printStackTrace()
         }
     }
 
     inner class ProgressUpdate : Thread(){
        override fun run() {
-           Log.d(TAG,"ProgressUpdate -> ${mMediaPlayer?.isPlaying} // $isPlaying")
-            while(isPlaying!!){
+           Log.d(TAG,"ProgressUpdate -> ${returnEventBus().getMediaPlay()?.isPlaying}")
+            while(returnEventBus().getMediaPlay()?.isPlaying == true){
                 try {
                     sleep(1000)
-                    if(mMediaPlayer!=null){
-                        seekBar?.progress = mMediaPlayer?.currentPosition!!
-                    }
+                        seekBar?.progress = returnEventBus().getMediaPlay()?.currentPosition!!
+                        //Log.d(TAG,"currentPosition -> ${returnEventBus().getMediaPlay()?.currentPosition!!}")
                 } catch (e : Exception) {
                     e.printStackTrace()
                 }
@@ -312,7 +255,7 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
         override fun onServiceConnected(name: ComponentName?, Ibinder: IBinder?) {
             var binder : MusicService.ServiceBinder = Ibinder as MusicService.ServiceBinder
             musicservice = binder.getService()
-            Log.d(TAG,"바인더: ${mMediaPlayer?.isPlaying} // ${mMediaPlayer?.currentPosition}")
+            Log.d(TAG,"바인더: ${returnEventBus().getMediaPlay()?.isPlaying} // ${returnEventBus().getMediaPlay()?.currentPosition}")
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -334,8 +277,10 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
 
         runBlocking {
             var check_music_data = db.MyMusicPlayListDao().getSelectPlayData(Contacts.Admin_UserID,Util.getAlbumInfo(musicDto.play_title)?.get(1)!!,Util.getAlbumInfo(musicDto.play_title)?.get(0)!!,music_uri)
-            if (check_music_data == null)
-            db.MyMusicPlayListDao().insertSelectMusic(MyMusicPlayListEntity(Contacts.Admin_UserID,Util.getAlbumInfo(musicDto.play_title)?.get(1)!!,Util.getAlbumInfo(musicDto.play_title)?.get(0)!!,music_uri))
+            if (check_music_data == null) {
+                db.MyMusicPlayListDao().insertSelectMusic(MyMusicPlayListEntity(Contacts.Admin_UserID, Util.getAlbumInfo(musicDto.play_title)?.get(1)!!, Util.getAlbumInfo(musicDto.play_title)?.get(0)!!, music_uri))
+                Toast.makeText(mcontext, "재생 목록에 추가되었습니다.", Toast.LENGTH_SHORT).show()
+            }
         }
 
         playList = MusicInfoLoadUtil.myPlayListAll(applicationContext)
@@ -348,24 +293,27 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
      fun setUI() {
 
             try {
-                seekBar?.max = mMediaPlayer?.duration!!
 
-                    if (mMediaPlayer?.isPlaying!!) {
-                        img_play?.visibility = View.GONE
-                        img_pause?.visibility = View.VISIBLE
-                    } else {
-                        img_play?.visibility = View.VISIBLE
-                        img_pause?.visibility = View.GONE
+                Log.d(TAG,"SetUI -> ${returnEventBus().getMediaPlay()?.isPlaying}")
+
+                Log.d(TAG,"SetUI SeekBar-> ${returnEventBus().getMediaPlay()?.duration!!}")
+                seekBar?.max = returnEventBus().getMediaPlay()?.duration!!
+
+                if (returnEventBus().getMediaPlay()?.isPlaying == false) {
+                    this.img_play?.visibility = View.VISIBLE
+                    this.img_pause?.visibility = View.GONE
+                } else {
+                    this.img_play?.visibility = View.GONE
+                    this.img_pause?.visibility = View.VISIBLE
                 }
 
                 seekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+                    // onProgressChange - Seekbar 값 변경될때마다 호출
                     override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromuser: Boolean) {
 
-                        //mediaPlayer?.seekTo(progress)
-                        //seekBar.progress = progress
                         var timeFormat: SimpleDateFormat = SimpleDateFormat("mm:ss")
 
-                        liveTotalPlaytime?.value = timeFormat.format(mMediaPlayer?.duration)
+                        liveTotalPlaytime?.value = timeFormat.format(returnEventBus().getMediaPlay()?.duration)
 
                         var state_min : String = (progress/60000).toString()
                         var state_sec : String = ((progress%60000)/1000).toString()
@@ -377,19 +325,18 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
                         }
                         liveStatePlaytime?.value = "$state_min:$state_sec"
                     }
+                    // onStartTeackingTouch - SeekBar 값 변경위해 첫 눌림에 호출
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                        mMediaPlayer?.pause()
+                        //returnEventBus().getMediaPlay()?.pause()
                     }
+                    // onStopTrackingTouch - SeekBar 값 변경 끝나고 드래그 떼면 호출
                     override fun onStopTrackingTouch(seekBar: SeekBar) {
-                        mMediaPlayer?.seekTo(seekBar.progress)
-                        if(seekBar.progress > 0 && img_play?.visibility == View.GONE){
-                            mMediaPlayer?.start()
-                            isPlaying = true
-                            isPause = false
-                            ProgressUpdate().start()
-                        }
+                        returnEventBus().getMediaPlay()?.seekTo(seekBar.progress)
+                        Log.d(TAG,"onStopTrackingTouch -> ${seekBar.progress}")
                     }
                 })
+
+                ProgressUpdate().start()
 
             }catch (e : Exception) {
                 e.printStackTrace()
@@ -398,6 +345,12 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     fun setLiveData(){
+        liveTitle.observe(this, Observer {
+            tv_title?.text = it
+        })
+        liveArtist.observe(this, Observer {
+            tv_artist?.text = it
+        })
         liveTotalPlaytime.observe(this, Observer {
             mtv_total_playtime?.text = it
         })
@@ -408,15 +361,6 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
 
     fun conMusicService(){
         mServiceIntent = Intent(mcontext,MusicService::class.java)
-    }
-
-    fun getMediaPlayer() : MediaPlayer? {
-        Log.d(TAG,"getMediaPlayer PlayState-> ${mMediaPlayer?.isPlaying}")
-        if (mMediaPlayer != null) {
-            return mMediaPlayer
-        }else{
-            return null
-        }
     }
 
     fun getCurrentInfo(): PlayMusicInfo? {
@@ -435,28 +379,25 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
     var mBroadcastReceiver : BroadcastReceiver = object : BroadcastReceiver(){
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.d(TAG,"Found OnReceiver")
-            Log.d(TAG, "mBroadcastReceiver intent -> ${intent?.getStringExtra("action_state")} // ${intent?.getStringExtra("notification_state")}")
-            if (intent?.getStringExtra("action_state").equals(MusicService.ACTION_PLAYSTATE)){
-                if (intent?.getStringExtra("notification_state").equals(MusicService.ACTION_PLAY)) {
-                    mMediaPlayer?.start()
-                    isPlaying = true
-                    isPause = false
-                    setUI()
-                    ProgressUpdate().start()
-                    sendService()
-                }else if(intent?.getStringExtra("notification_state").equals(MusicService.ACTION_PLAY_PAUSE)){
-                    mMediaPlayer?.pause()
-                    isPlaying = false
-                    isPause = true
-                    setUI()
-                    sendService()
+            Log.d(TAG, "mBroadcastReceiver intent -> ${intent?.getStringExtra("action_state")} // ${intent?.getStringExtra("notification_state")} // ${intent?.getSerializableExtra("playdata")} // ${intent?.getSerializableExtra("playdata")}")
+            if (intent?.getStringExtra("action_state").equals(MusicService.ACTION_PLAY)) {
+                if (intent?.getSerializableExtra("playdata") != null) {
+                    playdata = intent?.getSerializableExtra("playdata") as MusicPlayData?
+                    tv_title?.text = MusicInfoLoadUtil.getSelectedMusicInfo(this@MusicPlayerActivity, playdata?.play_title)?.music_title
+                    tv_artist?.text = MusicInfoLoadUtil.getSelectedMusicInfo(this@MusicPlayerActivity, playdata?.play_title)?.music_artist
                 }
-
-            } else if(intent?.getStringExtra("action_state").equals(MusicService.ACTION_PLAY_NEXT)){
+                setUI()
+                img_play?.visibility = View.GONE
+                img_pause?.visibility = View.VISIBLE
+            }else if(intent?.getStringExtra("action_state").equals(MusicService.ACTION_PAUSE)) {
+                setUI()
+                img_play?.visibility = View.VISIBLE
+                img_pause?.visibility = View.GONE
+            }else if(intent?.getStringExtra("action_state").equals(MusicService.ACTION_PLAY_NEXT)){
 
             }else if(intent?.getStringExtra("action_state").equals(MusicService.ACTION_PLAY_PREVIOUS)){
 
-            }
+                }
         }
     }
 
@@ -468,10 +409,34 @@ class MusicPlayerActivity : AppCompatActivity(), View.OnClickListener {
 
     fun sendService() {
         var playIntent = Intent(mcontext, MusicService::class.java)
-             playIntent.putExtra("isplay", mMediaPlayer?.isPlaying)
-             playIntent.putExtra("ispause",isPause)
-             playIntent.action = MusicService.ACTION_PLAYSTATE
+             //playIntent.putExtra("ispause",isPause)
+        if (returnEventBus().getMediaPlay()?.isPlaying == true) {
+            playIntent.action = MusicService.ACTION_PLAY
+        }else{
+            playIntent.action = MusicService.ACTION_PAUSE
+        }
              startService(playIntent)
+    }
+
+    fun returnEventBus() : EventBusProvider{
+        return EventBusProvider.getinstance(this)
+    }
+
+    fun playTimeUI(){
+        var timeFormat: SimpleDateFormat = SimpleDateFormat("mm:ss")
+
+        liveTotalPlaytime?.value = timeFormat.format(returnEventBus().getMediaPlay()?.duration)
+
+        var state_min : String = (returnEventBus().getMediaPlay()?.currentPosition!!/60000).toString()
+        var state_sec : String = ((returnEventBus().getMediaPlay()?.currentPosition!!%60000)/1000).toString()
+        if (state_min.length < 2) {
+            state_min = "0$state_min"
+        }
+        if (state_sec.length < 2){
+            state_sec = "0$state_sec"
+        }
+        liveStatePlaytime?.value = "$state_min:$state_sec"
+        seekBar?.progress = returnEventBus().getMediaPlay()?.currentPosition!!
     }
 
 }

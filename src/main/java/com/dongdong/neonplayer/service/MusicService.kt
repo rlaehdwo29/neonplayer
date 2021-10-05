@@ -16,12 +16,23 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.room.Room
 import com.dongdong.neonplayer.R
+import com.dongdong.neonplayer.activity.MainActivity
 import com.dongdong.neonplayer.activity.MusicPlayerActivity
+import com.dongdong.neonplayer.common.Contacts
 import com.dongdong.neonplayer.common.MusicInfoLoadUtil
 import com.dongdong.neonplayer.common.Util
 import com.dongdong.neonplayer.data.*
-import java.lang.ref.WeakReference
+import com.dongdong.neonplayer.eventbus.EventBusProvider
+import com.dongdong.neonplayer.room.AppDataBase
+import com.dongdong.neonplayer.room.Entity.FinishMusicInfoEntity
+import com.dongdong.neonplayer.room.Entity.MyMusicPlayListEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.util.*
 
 
 class MusicService : Service(), MediaPlayer.OnCompletionListener {
@@ -32,14 +43,18 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         const val ACTION_PLAY = "ACTION_PLAY"
         const val ACTION_PLAY_NEXT = "ACTION_PLAY_NEXT"
         const val ACTION_PLAY_PREVIOUS = "ACTION_PLAY_PREVIOUS"
-        const val ACTION_PLAY_PAUSE = "ACTION_PLAY_PAUSE"
+        const val ACTION_PAUSE = "ACTION_PAUSE"
         const val ACTION_PLAYSTATE = "ACTION_PLAYSTATE"
         const val ACTION_PAUSE_UNPLUGGED = "ACTION_PAUSE_UNPLUGGED"
         const val ACTION_PLAY_SELECTED = "ACTION_PLAY_SELECTED"
         const val ACTION_PLAY_FINISH = "ACTION_FINISH"
         const val MUSIC_SERVICE_FILTER = "MUSIC_SERVICE_FILTER"
         const val ACTION_NOTIFICATION = "ACTION_NOTIFICATION"
-
+        const val COUNTDOWNTIMER : Long = 60*1000
+        const val NOTIFICAIONCHANNELID = 1
+        const val CHANNELID = "MusicChannel_1"
+        const val CHANNELNAME = "MusicNotification"
+        const val TIMERUPDATE = 100
     }
 
     var mSession : MediaSessionCompat? = null
@@ -51,18 +66,22 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     private var mCurrentPosition = 0
     var isReady : Boolean? = false
     private var mUnPlugReceiver: UnPlugReceiver? = null
-    var isPause : Boolean? = false
-    //var mMediaPlayer: MediaPlayer? = null
-    var isPlaying : Boolean? = false
-    var newMusicCheck : Boolean? = false
     var musicevent : MusicEvent? = null
     var br_playstate : String? = null
     var click_notification_btn : Boolean? = false
+    var newMusicCheck : Boolean? = false         // true -> 새로운 음악 , false -> 새로운 음악 아님
+    var manager : NotificationManager? = null
+    var musicPlayerActivity : MusicPlayerActivity? = null
+    var mainActivity : MainActivity? = null
+    var CDT: CountDownTimer? = null
 
     override fun onCreate() {
         super.onCreate()
 
         //mMediaPlayer = MediaPlayer()
+        musicPlayerActivity = MusicPlayerActivity()
+        mainActivity = MainActivity()
+        returnEventBus().setMediaPlay(MediaPlayer(),this)
         mUnPlugReceiver = UnPlugReceiver()
         var filter : IntentFilter = IntentFilter(Intent.ACTION_HEADSET_PLUG)
         registerReceiver(mUnPlugReceiver,filter)
@@ -108,389 +127,233 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         Log.d(TAG,"ACTION RESULT -> $mAction || $br_playstate")
         when(mAction) {
 
-            /**
-             * Item 선택했을때 데이터 세팅
-             */
-            ACTION_PLAY_SELECTED -> {
-                playdata = intent?.getSerializableExtra("playdata") as MusicPlayData?
-                    Log.d(TAG, "[ACTION_PLAY_SELECTED] mCurrentPosition -> $playdata // ${mCurrentPosition} // ${playdata?.play_title}")
-                allPlayList = intent?.getSerializableExtra("playlist") as ArrayList<MyPlayListData>?
-                    Log.d(TAG, "[ACTION_PLAY_SELECTED] AllPlayListSize -> ${allPlayList?.size}")
-                mCurrentPosition = intent?.getIntExtra("position", 0)!!
-                 Log.d(TAG,"[ACTION_PLAY_SELECTED] mCurrentMusicInfo -> ${mCurrentMusicInfo?.music_title} || ${mCurrentMusicInfo?.music_artist}")
-                mCurrentMusicInfo = MusicInfoLoadUtil.getSelectedMusicInfo(applicationContext, playdata?.play_title)
-                isPlaying = intent?.getBooleanExtra("isplay",false)
-                Log.d(TAG,"[ACTION_PLAYSTATE] isPlaying -> ${isPlaying}")
-                showNotification()
-            }
-
-            /**
-             * MusicPlayerActicity::class.java에서 Play,Pause 상태 데이터 세팅
-             */
-            ACTION_PLAYSTATE -> {
-
+            ACTION_PLAY -> {
                 if (intent?.getSerializableExtra("playdata") as MusicPlayData? != null) {
                     var getplaydata = intent?.getSerializableExtra("playdata") as MusicPlayData?
-                    Log.d(TAG, "[ACTION_PLAYSTATE] 재생 음악 비교 Frist -> ${playdata?.play_title} || ${getplaydata?.play_title} || $br_playstate")
-                    playdata = getplaydata
+                    Log.d(TAG, "[ACTION_PLAY] 재생 음악 비교 Frist -> ${playdata?.play_title} || ${getplaydata?.play_title} || $br_playstate")
 
+                    if (playdata?.play_title.equals(getplaydata?.play_title) == true){
+                        newMusicCheck = false
+                    }else{
+                        newMusicCheck = true
+                        playdata = getplaydata
+                    }
                 }
 
-                    Log.d(TAG, "[ACTION_PLAYSTATE] 기타 LOG -> $br_playstate")
+                Log.d(TAG, "[ACTION_PLAY] 기타 LOG -> $br_playstate")
 
                 if (intent?.getIntExtra("position", 0)!! != null) {
                     mCurrentPosition = intent?.getIntExtra("position", 0)!!
-                    Log.d(TAG, "[ACTION_PLAYSTATE] mCurrentPosition -> $playdata // ${mCurrentPosition} // ${playdata?.play_title}")
+                    Log.d(TAG, "[ACTION_PLAY] mCurrentPosition -> $playdata // ${mCurrentPosition} // ${playdata?.play_title}")
                 }
                 if (intent?.getSerializableExtra("playlist") as ArrayList<MyPlayListData>? != null) {
                     allPlayList = intent?.getSerializableExtra("playlist") as ArrayList<MyPlayListData>?
-                    Log.d(TAG, "[ACTION_PLAYSTATE] AllPlayListSize -> ${allPlayList?.size}")
+                    Log.d(TAG, "[ACTION_PLAY] AllPlayListSize -> ${allPlayList?.size}")
                 }
                 if (MusicInfoLoadUtil.getSelectedMusicInfo(applicationContext, playdata?.play_title) != null && playdata?.play_title != null) {
                     mCurrentMusicInfo = MusicInfoLoadUtil.getSelectedMusicInfo(applicationContext, playdata?.play_title)
-                    Log.d(TAG,"[ACTION_PLAYSTATE] mCurrentMusicInfo -> ${mCurrentMusicInfo?.music_title} || ${mCurrentMusicInfo?.music_artist}")
+                    Log.d(TAG,"[ACTION_PLAY] mCurrentMusicInfo -> ${mCurrentMusicInfo?.music_title} || ${mCurrentMusicInfo?.music_artist}")
                 }
                 if (intent?.getBooleanExtra("isplay",false) != null) {
-                    isPlaying = intent?.getBooleanExtra("isplay", false)
-                    Log.d(TAG, "[ACTION_PLAYSTATE] isPlaying -> ${isPlaying}")
-                }
-                if (intent?.getBooleanExtra("ispause",false) != null) {
-                    isPause = intent?.getBooleanExtra("ispause", false)
-                    Log.d(TAG, "[ACTION_PLAYSTATE] isPause -> ${isPause}")
+                    Log.d(TAG, "[ACTION_PLAY] isPlaying -> ${returnEventBus().getMediaPlay()?.isPlaying}")
                 }
                 if (intent?.getBooleanExtra("clicknotification",false) != null) {
                     if (intent?.getBooleanExtra("clicknotification",false) == true){
-                        if (isPlaying == true){
-                            br_playstate = ACTION_PLAY_PAUSE
-                        }else{
-                            br_playstate = ACTION_PLAY
-                        }
+                        br_playstate = ACTION_PLAY
                     }
                 }
-                    click_notification_btn = false
-                    showNotification()
             }
 
-            ACTION_NOTIFICATION -> {
-
+            ACTION_PAUSE -> {
+                Log.d(TAG, "[ACTION_PAUSE] isPause -> ")
+                if (intent?.getBooleanExtra("clicknotification",false) != null) {
+                    if (intent?.getBooleanExtra("clicknotification",false) == true){
+                        br_playstate = ACTION_PAUSE
+                    }
+                }
             }
 
             /**
              * 다음 곡으로 이동할때 데이터 세팅
              */
             ACTION_PLAY_NEXT -> {
-                mCurrentPosition = intent?.getIntExtra("position", 0)!!
-                Log.d(TAG, "[ACTION_PLAY_NEXT] mCurrentPosition -> $playdata // ${mCurrentPosition} // ${playdata?.play_title}")
-                allPlayList = intent?.getSerializableExtra("playlist") as ArrayList<MyPlayListData>? ?: null
-                Log.d(TAG, "[ACTION_PLAY_NEXT] AllPlayListSize -> ${allPlayList?.size}")
-                mCurrentMusicInfo = MusicInfoLoadUtil.getSelectedMusicInfo(applicationContext, playdata?.play_title)
-                Log.d(TAG,"[ACTION_PLAY_NEXT] mCurrentMusicInfo -> ${mCurrentMusicInfo?.music_title} || ${mCurrentMusicInfo?.music_artist}")
-                isPlaying = intent?.getBooleanExtra("isplay",false)
-                Log.d(TAG,"[ACTION_PLAY_NEXT] isPlaying -> ${isPlaying}")
-                showNotification()
+                if (intent?.getSerializableExtra("playdata") as MusicPlayData? != null) {
+                    var getplaydata = intent?.getSerializableExtra("playdata") as MusicPlayData?
+                    Log.d(TAG, "[ACTION_PLAY_NEXT] 재생 음악 비교 Frist -> ${playdata?.play_title} || ${getplaydata?.play_title} || $br_playstate")
+                    playdata = getplaydata
+                }
             }
 
             /**
              * 이전 곡으로 이동할때 데이터 세팅
              */
             ACTION_PLAY_PREVIOUS -> {
-                mCurrentPosition = intent?.getIntExtra("position", 0)!!
-                Log.d(TAG, "[ACTION_PLAY_PREVIOUS] mCurrentPosition -> $playdata // ${mCurrentPosition} // ${playdata?.play_title}")
-                allPlayList = intent?.getSerializableExtra("playlist") as ArrayList<MyPlayListData>? ?: null
-                Log.d(TAG, "[ACTION_PLAY_PREVIOUS] AllPlayListSize -> ${allPlayList?.size}")
-                mCurrentMusicInfo = MusicInfoLoadUtil.getSelectedMusicInfo(applicationContext, playdata?.play_title)
-                Log.d(TAG,"[ACTION_PLAY_PREVIOUS] mCurrentMusicInfo -> ${mCurrentMusicInfo?.music_title} || ${mCurrentMusicInfo?.music_artist}")
-                isPlaying = intent?.getBooleanExtra("isplay",false)
-                Log.d(TAG,"[ACTION_PLAY_PREVIOUS] isPlaying -> ${isPlaying}")
-                showNotification()
+                if (intent?.getSerializableExtra("playdata") as MusicPlayData? != null) {
+                    var getplaydata = intent?.getSerializableExtra("playdata") as MusicPlayData?
+                    Log.d(TAG, "[ACTION_PLAY_PREVIOUS] 재생 음악 비교 Frist -> ${playdata?.play_title} || ${getplaydata?.play_title} || $br_playstate")
+                        playdata = getplaydata
+                }
             }
-/*
+
             /**
              * 플레이어 종료시 세팅
              */
             ACTION_PLAY_FINISH -> {
 
-                if (isPlaying == true) {
-                    mHandler.removeMessages(0)
-                    mMediaPlayer?.stop()
-                    mMediaPlayer?.release()
-                    mMediaPlayer = null
+                if (returnEventBus().getMediaPlay()?.isPlaying == true) {
+                    returnEventBus().getMediaPlay()?.apply {
+                        stop()
+                        release()
+                    }
+                    returnEventBus().resetMediaPlay()
                 } else {
-                    mHandler.removeMessages(0)
-                    mMediaPlayer?.release()
-                    mMediaPlayer = null
+                    returnEventBus().getMediaPlay()?.apply { release() }
+                    returnEventBus().resetMediaPlay()
                 }
                 stopForeground(true)
                 stopService(Intent(applicationContext, MusicService::class.java))
             }
 
-            *//**
+            /**
              * 블루투스 장치 제거 시 세팅
-             *//*
+             **/
             ACTION_PAUSE_UNPLUGGED -> {
-                if (mMediaPlayer?.isPlaying == true) {
-                    mMediaPlayer?.pause()
+                if (returnEventBus().getMediaPlay()?.isPlaying == true) {
+                    returnEventBus().getMediaPlay()?.apply { pause() }
+                    startTimer()
                     if (mCurrentMusicInfo != null && playdata != null) {
-                        sendAllEvent(mMediaPlayer)
                         showNotification()
                     }
                 }
             }
         }
 
-        *//**
+        /**
          * 이벤트 Action
-         *//*
+         **/
         when(mAction){
-            *//**
-             * Item에서 곡을 선택했을 때 설정
-             *//*
-            ACTION_PLAY_SELECTED -> {
-                Log.e(TAG, "MUSIC_SELECTED")
-                    isPause = false
-                    mMediaPlayer?.pause()
-                    mMediaPlayer?.reset()
-                    try {
-                        Log.d(TAG, "ACTION_PLAY_SELECTED -> ${Util.getParseUri(playdata?.play_title)}")
-                        mMediaPlayer?.setDataSource(applicationContext, Util.getParseUri(playdata?.play_title))
-                        mMediaPlayer?.prepareAsync()
-                        isReady = true
-                        mMediaPlayer?.setOnPreparedListener { mp ->
-                            mp?.start()
-                            sendAllEvent(mp)
-                            Log.e(TAG, "ACTION_PLAY_SELECTED -> ${mp?.isPlaying}")
-                            showNotification()
-                            sendBroadCast()
+
+            /**
+             * 재생 ACTION
+             **/
+            ACTION_PLAY -> {
+                Log.e(TAG, "ACTION_PLAY -> ${returnEventBus().getMediaPlay()?.isPlaying} //$newMusicCheck")
+
+                returnEventBus().getMediaPlay()?.seekTo(returnEventBus().getMediaPlay()!!.currentPosition)
+
+                if (returnEventBus().getMediaPlay()?.isPlaying == true) {
+                    if (newMusicCheck == false) {
+                        returnEventBus().getMediaPlay()?.apply {
+                            pause()
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-            }
-
-            *//**
-             * []MusicPlayerActivity::class.java] Play,Pause Action
-             *//*
-            ACTION_PLAYSTATE -> {
-                Log.e(TAG, "ACTION_PLAYSTATE -> ${mMediaPlayer?.isPlaying} // $isPause //$newMusicCheck")
-
-                if (mMediaPlayer?.isPlaying == true) {
-                        if (newMusicCheck == false) {
-                            mMediaPlayer?.pause()
-                            isPause = true
-                            showNotification()
-                            sendAllEvent(mMediaPlayer)
-                            sendBroadCast()
-                        } else {
-                            mMediaPlayer?.pause()
-                            mMediaPlayer?.reset()
-                            isPause = false
+                        startTimer()
+                        showNotification()
+                        sendBroadCast(mAction)
+                    } else {
+                            returnEventBus().getMediaPlay()?.apply { reset() }
 
                             try {
-                                Log.d(TAG, "ACTION_PLAYSTATE -> ${Util.getParseUri(playdata?.play_title)}")
-                                mMediaPlayer?.setDataSource(applicationContext, Util.getParseUri(playdata?.play_title))
-                                mMediaPlayer?.prepareAsync()
-                                mMediaPlayer?.setOnPreparedListener { mp ->
-                                    mp?.start()
-                                    sendAllEvent(mp)
-                                    Log.e(TAG, "ACTION_PLAYSTATE Playing State -> ${mp?.isPlaying}")
-                                    showNotification()
-                                    sendBroadCast()
+                                Log.d(TAG, "ACTION_PLAY -> ${Util.getParseUri(playdata?.play_title)}")
+                                returnEventBus()?.getMediaPlay()?.apply {
+                                    setDataSource(applicationContext, Util.getParseUri(playdata?.play_title))
+                                    prepareAsync()
+                                    setOnPreparedListener{ mp ->
+                                        mp?.start()
+                                        setFinishMusicInfo()
+                                        Log.e(TAG, "ACTION_PLAY Playing State -> ${mp?.isPlaying}")
+                                        click_notification_btn = false
+                                        sendBroadCast(mAction)
+                                    }
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
                         }
                 }else{
-                    if (isPause == true){
                         if (newMusicCheck == false) {
-                            mMediaPlayer?.start()
-                            isPause = false
-                            showNotification()
-                            sendAllEvent(mMediaPlayer)
-                            sendBroadCast()
+                            returnEventBus().getMediaPlay()?.apply {
+                                start()
+                            }
+                            setFinishMusicInfo()
+                            sendBroadCast(mAction)
+                            //isPause = false
                         }else{
-                            mMediaPlayer?.pause()
-                            mMediaPlayer?.reset()
-                            isPause = false
 
                             try {
-                                Log.d(TAG, "ACTION_PLAYSTATE -> ${Util.getParseUri(playdata?.play_title)}")
-                                mMediaPlayer?.setDataSource(applicationContext, Util.getParseUri(playdata?.play_title))
-                                mMediaPlayer?.prepareAsync()
-                                mMediaPlayer?.setOnPreparedListener { mp ->
-                                    mp?.start()
-                                    sendAllEvent(mp)
-                                    Log.e(TAG, "ACTION_PLAYSTATE Playing State -> ${mp?.isPlaying}")
-                                    showNotification()
-                                    sendBroadCast()
+                                Log.d(TAG, "ACTION_PLAY -> ${Util.getParseUri(playdata?.play_title)}")
+                                returnEventBus().getMediaPlay()?.apply {
+                                    setDataSource(applicationContext, Util.getParseUri(playdata?.play_title))
+                                    prepareAsync()
+                                    setOnPreparedListener{  mp ->
+                                        mp?.start()
+                                        setFinishMusicInfo()
+                                        click_notification_btn = false
+                                        sendBroadCast(mAction)
+                                    }
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
                         }
-                    }else {
-                            mMediaPlayer?.pause()
-                            mMediaPlayer?.reset()
-                            isPause = false
-
-                            try {
-                                Log.d(TAG, "ACTION_PLAYSTATE -> ${Util.getParseUri(playdata?.play_title)}")
-                                mMediaPlayer?.setDataSource(applicationContext, Util.getParseUri(playdata?.play_title))
-                                mMediaPlayer?.prepareAsync()
-                                mMediaPlayer?.setOnPreparedListener { mp ->
-                                    mp?.start()
-                                    sendAllEvent(mp)
-                                    Log.e(TAG, "ACTION_PLAYSTATE Playing State -> ${mp?.isPlaying}")
-                                    showNotification()
-                                    sendBroadCast()
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                    }
                 }
             }
 
-            *//**
+            /**
+             * 일시정지 ACTION
+             */
+            ACTION_PAUSE -> {
+                returnEventBus().getMediaPlay()?.apply { pause() }
+                //isPause = true
+                startTimer()
+                showNotification()
+                sendBroadCast(mAction)
+            }
+
+            /**
              * 다음 곡으로 이동버튼 클릭 시 Action
-             *//*
+             **/
             ACTION_PLAY_NEXT -> {
                 Log.e(TAG, "MUSIC_NEXT -> [mCurrentPosition] ${mCurrentPosition}  [list size] ${allPlayList?.size}")
-                if (mMediaPlayer?.isPlaying == true) {
-                    isPause = true
-                    mMediaPlayer?.stop()
-                    mMediaPlayer?.reset()
-                    if (mCurrentPosition + 1 < allPlayList!!.size) {
-                        mCurrentPosition++
-                    }
-                    try {
-                        mMediaPlayer?.setDataSource(applicationContext, Util.getParseUri(allPlayList?.get(mCurrentPosition)?.music_uri))
-                        mMediaPlayer?.prepareAsync()
-                        isReady = true
-                        mMediaPlayer?.setOnPreparedListener { mp ->
-                            mp?.start()
-                            isPause = false
-                            sendAllEvent(mp)
-                            showNotification()
-                            sendBroadCast()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }else{
-                    mMediaPlayer?.reset()
-                    isPause = true
-                    try {
-                        mMediaPlayer?.setDataSource(
-                            applicationContext,
-                            Util.getParseUri(allPlayList?.get(mCurrentPosition)?.music_uri)
-                        )
-                        mMediaPlayer?.prepareAsync()
-                        isReady = true
-                        mMediaPlayer?.setOnPreparedListener { mp ->
-                            mp?.start()
-                            sendAllEvent(mp)
-                            sendBroadCast()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    } finally {
-                        showNotification()
-                    }
-                }
+                setAtPreviousOrNextMusicInfo(returnEventBus().getMediaPlay(), ACTION_PLAY_NEXT)
+                showNotification()
+                sendBroadCast(mAction)
             }
 
-            *//**
+            /**
              * 이전 곡으로 이동버튼 클릭 시 Action
-             *//*
+             **/
             ACTION_PLAY_PREVIOUS -> {
                 Log.e(TAG, "MUSIC_PREV")
-                if (mMediaPlayer?.isPlaying == true) {
-                    mMediaPlayer?.stop()
-                    mMediaPlayer?.reset()
-                    if (mCurrentPosition - 1 >= 0) {
-                        mCurrentPosition--
-                    }
-                    try {
-                        mMediaPlayer?.setDataSource(applicationContext, Util.getParseUri(allPlayList?.get(mCurrentPosition)?.music_uri))
-                        mMediaPlayer?.prepareAsync()
-                        isReady = true
-                        mMediaPlayer?.setOnPreparedListener { mp ->
-                            mp?.start()
-                            sendAllEvent(mp)
-                            sendBroadCast()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    } finally {
-                        showNotification()
-                    }
-                }else{
-                    mMediaPlayer?.reset()
-
-                    try {
-                        mMediaPlayer?.setDataSource(
-                            applicationContext,
-                            Util.getParseUri(allPlayList?.get(mCurrentPosition)?.music_uri)
-                        )
-                        mMediaPlayer?.prepareAsync()
-                        isReady = true
-                        mMediaPlayer?.setOnPreparedListener { mp ->
-                            mp?.start()
-                            sendAllEvent(mp)
-                            sendBroadCast()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    } finally {
-                        showNotification()
-                    }
-
-                }
-            }*/
+                setAtPreviousOrNextMusicInfo(returnEventBus().getMediaPlay(), ACTION_PLAY_PREVIOUS)
+                showNotification()
+                sendBroadCast(mAction)
+            }
         }
-        sendBroadCast(mAction)
+
         return START_STICKY
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
-        mp?.pause()
-        mp?.reset()
-
+        Log.d(TAG,"onCompletion! -> ${mCurrentMusicInfo?.music_title}")
         try {
-            if (mCurrentMusicInfo != null) {
-                setNextMusicInfo(mp)
-            }
+            //setAtNextMusicInfo(mp)
         }catch (e : Exception){
             e.printStackTrace()
         }finally {
-            if (mCurrentMusicInfo != null) {
-                showNotification()
-                sendMusicEvent(mp)
-            }
+            showNotification()
         }
     }
 
     fun showNotification(){
-        setMetaData()
-        showNotificationUpper(mMetadata)
-    }
 
-    fun showNotificationUpper(metadata : MediaMetadataCompat?){
-
-        val channelId = "MusicChannel_1"
-        val channelName = "MusicNotification"
-
-        var notificationBuilder = NotificationCompat.Builder(this,channelId)
+        var notificationBuilder = NotificationCompat.Builder(this, CHANNELID)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            var manager:NotificationManager = baseContext.getSystemService(NotificationManager::class.java)
+            manager = baseContext.getSystemService(NotificationManager::class.java)
 
-            var serviceChannel : NotificationChannel =  NotificationChannel(channelId,channelName,NotificationManager.IMPORTANCE_LOW)
-            manager.createNotificationChannel(serviceChannel)
+            var serviceChannel : NotificationChannel =  NotificationChannel(CHANNELID,CHANNELNAME,NotificationManager.IMPORTANCE_LOW)
+            manager?.createNotificationChannel(serviceChannel)
         }
-
-        notificationBuilder.setOngoing(true).setOnlyAlertOnce(true)
 
         /**
          * Notification 앨범 이미지 세팅
@@ -499,37 +362,23 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
         notificationBuilder.setShowWhen(false)
         notificationBuilder.setStyle(androidx.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(0, 1, 2))
-        notificationBuilder.color = Color.parseColor("#2196F3")
+        notificationBuilder.color = Color.parseColor("#000000")
         if (bitmap == null) {
             bitmap = BitmapFactory.decodeResource(resources, R.mipmap.testalbum)
         }
         Log.d(TAG,"Notification 정보 : ${mCurrentMusicInfo?.music_title} // ${mCurrentMusicInfo?.music_artist}")
+        notificationBuilder.setOngoing(true).setOnlyAlertOnce(true)
         notificationBuilder.setLargeIcon(bitmap)
+        notificationBuilder.priority = NotificationCompat.PRIORITY_DEFAULT
         notificationBuilder.setSmallIcon(R.mipmap.icon)
         notificationBuilder.setContentTitle(mCurrentMusicInfo?.music_title)
         notificationBuilder.setContentText(mCurrentMusicInfo?.music_artist)
 
         /**
-         * 플레이 상태체크해서 버튼 변경
-         */
-        Log.d(TAG,"showNotificationUpper 플레이 상태 확인: ${isPlaying} // ${isPause}")
-        var icon : Int
-        var state : String
-        if (isPlaying == true){
-            icon = android.R.drawable.ic_media_pause
-            state = "pause"
-        }else{
-            icon = android.R.drawable.ic_media_play
-            state = "play"
-        }
-
-        /**
          * 뒤로가기
          */
         var musicPrevIntent : Intent = Intent(applicationContext,MusicService::class.java)
-        musicPrevIntent.putExtra("metadata",metadata)
         musicPrevIntent.action = ACTION_PLAY_PREVIOUS
-        musicPrevIntent.putExtra("position",getPositionAtPreviousOrNext(ACTION_PLAY_PREVIOUS))
 
         var musicPrevPendingIntent : PendingIntent = PendingIntent.getService(applicationContext,0,musicPrevIntent,PendingIntent.FLAG_UPDATE_CURRENT)
         notificationBuilder.addAction(android.R.drawable.ic_media_previous, "prev", musicPrevPendingIntent)
@@ -540,11 +389,27 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         var musicPlayStateIntent : Intent = Intent(applicationContext,MusicService::class.java)
         musicPlayStateIntent.putExtra("playdata",playdata)
         musicPlayStateIntent.putExtra("playlist",MusicInfoLoadUtil.myPlayListAll(applicationContext))
-        musicPlayStateIntent.putExtra("isplay",isPlaying)
-        musicPlayStateIntent.putExtra("ispause",isPause)
-        click_notification_btn  =   true
+        musicPlayStateIntent.putExtra("isplay",returnEventBus().getMediaPlay()?.isPlaying)
+        //musicPlayStateIntent.putExtra("ispause",isPause)
+        click_notification_btn = true
         musicPlayStateIntent.putExtra("clicknotification",click_notification_btn!!)
-        musicPlayStateIntent.action = ACTION_PLAYSTATE
+        //musicPlayStateIntent.action = ACTION_PLAYSTATE
+
+        /**
+         * 플레이 상태체크해서 버튼 변경
+         */
+        Log.d(TAG,"showNotificationUpper 플레이 상태 확인: ${returnEventBus().getMediaPlay()?.isPlaying}")
+        var icon : Int
+        var state : String
+        if (returnEventBus().getMediaPlay()?.isPlaying == true){
+            icon = android.R.drawable.ic_media_pause
+            state = "pause"
+            musicPlayStateIntent.action = ACTION_PAUSE
+        }else{
+            icon = android.R.drawable.ic_media_play
+            state = "play"
+            musicPlayStateIntent.action = ACTION_PLAY
+        }
 
         var musicPausePendingIntent : PendingIntent = PendingIntent.getService(applicationContext,1,musicPlayStateIntent,PendingIntent.FLAG_UPDATE_CURRENT)
         notificationBuilder.addAction(icon, state, musicPausePendingIntent)
@@ -553,9 +418,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
          * 다음
          */
         var musicNextIntent : Intent = Intent(applicationContext,MusicService::class.java)
-        musicNextIntent.putExtra("metadata",metadata)
         musicNextIntent.action = ACTION_PLAY_NEXT
-        musicNextIntent.putExtra("position",getPositionAtPreviousOrNext(ACTION_PLAY_NEXT))
 
         var musicNextPendingIntent : PendingIntent = PendingIntent.getService(applicationContext,2,musicNextIntent,PendingIntent.FLAG_UPDATE_CURRENT)
         notificationBuilder.addAction(android.R.drawable.ic_media_next, "next", musicNextPendingIntent)
@@ -564,41 +427,53 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
          * Notification 클릭
          */
         var activityStartInent : Intent = Intent(applicationContext,MusicPlayerActivity::class.java)
-        activityStartInent.putExtra("noti_uid",getCurrentInfo()?.album_uid)
-        activityStartInent.putExtra("noti_title",getCurrentInfo()?.music_title)
-        activityStartInent.putExtra("noti_artist",getCurrentInfo()?.music_artist)
-        activityStartInent.putExtra("noti_uri",getCurrentInfo()?.music_uri)
         activityStartInent.putExtra("playlist",allPlayList)
         activityStartInent.putExtra("playdata",playdata)
+        activityStartInent.putExtra("externalstate",true)
         var activityStartPendingIntent : PendingIntent = PendingIntent.getActivity(applicationContext,1,activityStartInent,PendingIntent.FLAG_UPDATE_CURRENT)
         notificationBuilder.setContentIntent(activityStartPendingIntent)
 
         notificationBuilder.setAutoCancel(false)
         var notification : Notification = notificationBuilder.build()
-        startForeground(1,notification)
+        startForeground(NOTIFICAIONCHANNELID,notification)
 
     }
 
-    fun  getPositionAtPreviousOrNext(flag:String) : Int{
-        var position = getCurrentPosition()
+    fun  getPositionAtPreviousOrNext(flag:String) : Int?{
+        var positionUid : Int? = null
+
+        Log.d(TAG,"Flag * -> $flag")
         when(flag){
-            ACTION_PLAY_NEXT->{
-                if (position < getCurrentPosition()){
-                    position += 1
-                }else{
-                    position = 0
+            ACTION_PLAY_NEXT -> {
+                Log.d(TAG,"Flag * next playdata.play_title -> ${playdata?.play_title}")
+                Log.d(TAG,"Flag * nextUid -> ${MusicInfoLoadUtil.getMusicUID(applicationContext,playdata?.play_title)?.album_uid}")
+                positionUid = MusicInfoLoadUtil.getMusicUID(applicationContext,playdata?.play_title)?.album_uid!!
+                if (positionUid > 1) {
+                    positionUid--
                 }
+                Log.d(TAG,"Flag * nextUid2 -> ${positionUid}")
             }
 
-            ACTION_PLAY_PREVIOUS->{
-                if (position > 0) {
-                    position -= 1
-                }else{
-                    position = getCurrentPlaylistSize()
+            ACTION_PLAY_PREVIOUS -> {
+                Log.d(TAG,"Flag * prev playdata.play_title -> ${playdata?.play_title}")
+                Log.d(TAG,"Flag * prevUid -> ${MusicInfoLoadUtil.getMusicUID(applicationContext,playdata?.play_title)?.album_uid}")
+                positionUid = MusicInfoLoadUtil.getMusicUID(applicationContext,playdata?.play_title)?.album_uid!!
+                if (positionUid < allPlayList?.size!!) {
+                    positionUid++
                 }
+                Log.d(TAG,"Flag * prevUid2 -> ${positionUid}")
             }
         }
-        return position
+        Log.d(TAG,"resetUid1 -> ${positionUid} // ${allPlayList?.size}")
+        if (positionUid!! == allPlayList?.size!!){
+            positionUid = 1
+            return positionUid
+        } else if(positionUid == 1) {
+            positionUid = allPlayList?.size
+            return positionUid
+        }
+        Log.d(TAG,"resetUid2 -> ${positionUid}")
+        return positionUid
     }
 
     fun getCurrentPosition() : Int{
@@ -619,57 +494,77 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         }
     }
 
-    /*private fun sendEvents() {
-        if (mMediaPlayer?.isPlaying == true) {
-            Log.d(TAG, "UIRefresher is running")
-            var playback = PlayBack()
-            playback.isPlaying = mMediaPlayer?.isPlaying
-            playback.currentTime = mMediaPlayer?.currentPosition!!
-            mHandler.sendEmptyMessageDelayed(0, 1000)
-        } else {
-            Log.d(TAG, "UIRefresher is stopped")
-            var playback = PlayBack()
-            playback.isPlaying = mMediaPlayer?.isPlaying
-            playback.currentTime = mMediaPlayer?.currentPosition!!
-        }
-    }*/
-
-    inner class LocalBinder : Binder() {
-        fun getService() : MusicService {
-            return this@MusicService
-        }
-    }
-
-    fun sendMusicEvent(mediaPlayer: MediaPlayer?) {
-        musicevent = MusicEvent(mediaPlayer,getCurrentInfo())
-        Log.d(TAG,"sendMusicEvent PlayState : \n ${mediaPlayer?.isPlaying} \n ${musicevent?.mMediaPlayer?.isPlaying} ")
-
-    }
-
     @Throws(Exception::class)
-    fun setNextMusicInfo(mp : MediaPlayer?){
+    fun setAtPreviousOrNextMusicInfo(mp : MediaPlayer?,mFlag : String?){
 
-        Log.d(TAG,"setNextMusicInfo -> $mCurrentPosition // ${getCurrentPosition()}")
+        Log.d(TAG,"allPLayList Size -> ${allPlayList?.size}")
 
-        if (mCurrentPosition < getCurrentPosition()) {
-            mCurrentPosition++
-        }else{
-            mCurrentPosition = 0
+        var xUid = getPositionAtPreviousOrNext(mFlag!!)
+        Log.d(TAG,"xUid -> ${xUid}")
+
+        for(i in 0 until allPlayList?.size!!) {
+
+            Log.d(TAG,"setNextMusicInfo allPlayList -> $i // ${xUid} // ${allPlayList?.get(i)?.album_uid} // ${allPlayList?.get(i)?.music_title} // ${allPlayList?.get(i)?.music_uri} // ${Util.getNextParseUri(allPlayList!![i].music_uri)}")
+
+            if (allPlayList?.get(i)?.album_uid?.equals(xUid) == true) {
+                Log.d(TAG,"setAlbumUid -> ${MusicInfoLoadUtil.getMusicUID(applicationContext,playdata?.play_title)?.album_uid} // ${allPlayList!![i].music_uri} ")
+                mp?.reset()
+                mp?.setDataSource(applicationContext,Util.getNextParseUri(allPlayList!![i].music_uri))
+                playdata = MusicPlayData(allPlayList?.get(i)?.music_uri?.replace(Contacts.baseurl,""))
+                mCurrentMusicInfo =  MusicInfoLoadUtil.getSelectedMusicInfo(applicationContext, allPlayList?.get(i)?.music_title,allPlayList?.get(i)?.music_artist,allPlayList?.get(i)?.music_uri)
+                newMusicCheck = true
+            }
         }
-
-        mp?.setDataSource(applicationContext,Util.getParseUri(allPlayList!![mCurrentPosition].music_uri))
-        mCurrentMusicInfo =  MusicInfoLoadUtil.getSelectedMusicInfo(applicationContext, allPlayList?.get(mCurrentPosition)?.music_title,allPlayList?.get(mCurrentPosition)?.music_artist,allPlayList?.get(mCurrentPosition)?.music_uri)
-
-        if (mCurrentPosition != 0) {
-            mp?.prepare()
+        mp?.prepareAsync()
+        mp?.setOnPreparedListener { mp ->
             mp?.start()
-            isReady = true
-        } else {
-            mp?.stop()
-            mp?.reset()
-            isReady = false
+            setFinishMusicInfo()
+            sendBroadCast(ACTION_PLAY)
+        }
+    }
+
+    /**
+     * 한곡의 음악 재생이 완료 되었을 때 메소드 실행.
+     *
+     * 이전,다음 강의 눌렀을때 리스트의 끝까지 가면 onComplete 메소드가 실행되는데
+     * 이 메소드는 Next만 구현되어있고 Prev는 구현되어 있지 않음. 구현 예정
+     */
+    @Throws(Exception::class)
+    fun setAtNextMusicInfo(mp : MediaPlayer?){
+
+        Log.d(TAG,"setAtNextMusicInfo allPLayList Size -> ${allPlayList?.size}")
+        Log.d(TAG,"setAtNextMusicInfo playdata title -> ${playdata?.play_title}")
+        var xUid = MusicInfoLoadUtil.getMusicUID(applicationContext,playdata?.play_title)?.album_uid!!
+        Log.d(TAG,"setAtNextMusicInfo xUid1 -> ${xUid}")
+        if (xUid > 1) {
+            xUid--
+            Log.d(TAG,"setAtNextMusicInfo xUid1_1 -> ${xUid}")
+        }else if (xUid == 1) {
+            xUid == allPlayList?.size
+            Log.d(TAG,"setAtNextMusicInfo xUid1_2 -> ${xUid}")
         }
 
+        Log.d(TAG,"setAtNextMusicInfo xUid2 -> ${xUid}")
+
+        for(i in 0 until allPlayList?.size!!) {
+
+            Log.d(TAG,"setAtNextMusicInfo allPlayList -> $i // ${xUid} // ${allPlayList?.get(i)?.album_uid} // ${allPlayList?.get(i)?.music_title} // ${allPlayList?.get(i)?.music_uri} // ${Util.getNextParseUri(allPlayList!![i].music_uri)}")
+
+            if (allPlayList?.get(i)?.album_uid?.equals(xUid) == true) {
+                Log.d(TAG,"setAtNextMusicInfo setAlbumUid -> ${MusicInfoLoadUtil.getMusicUID(applicationContext,playdata?.play_title)?.album_uid} // ${allPlayList!![i].music_uri} ")
+                mp?.reset()
+                mp?.setDataSource(applicationContext,Util.getNextParseUri(allPlayList!![i].music_uri))
+                playdata = MusicPlayData(allPlayList?.get(i)?.music_uri?.replace(Contacts.baseurl,""))
+                mCurrentMusicInfo =  MusicInfoLoadUtil.getSelectedMusicInfo(applicationContext, allPlayList?.get(i)?.music_title,allPlayList?.get(i)?.music_artist,allPlayList?.get(i)?.music_uri)
+                newMusicCheck = true
+            }
+        }
+        mp?.prepareAsync()
+        mp?.setOnPreparedListener { mp ->
+            mp?.start()
+            setFinishMusicInfo()
+            sendBroadCast(ACTION_PLAY)
+        }
     }
 
     fun setMetaData(){
@@ -721,10 +616,82 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         var intent: Intent = Intent()
         intent.action = "com.dongdong.neonplayer.MusicPlayerBroadcastReceiver"
         intent.putExtra("action_state", message)
-        intent.putExtra("notification_state", br_playstate)
+        intent.putExtra("playdata",playdata)
         Log.d(TAG,"넘겨! $br_playstate")
         sendBroadcast(intent)
         br_playstate = null
+    }
+
+    fun main_sendBroadCast(message : String?){
+        var intent: Intent = Intent()
+        intent.action = "com.dongdong.neonplayer.MusicPlayerBroadcastReceiver"
+        intent.putExtra("action_state", message)
+        intent.putExtra("playdata",playdata)
+        Log.d(TAG,"넘겨! $br_playstate")
+        sendBroadcast(intent)
+        br_playstate = null
+    }
+
+    fun startTimer(){
+        Log.d(TAG,"Funtion finishnorification2222 : ${returnEventBus().getMediaPlay()?.isPlaying}")
+
+         CDT = object : CountDownTimer(COUNTDOWNTIMER, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                if (returnEventBus().getMediaPlay()?.isPlaying == true){
+                    this.cancel()
+                }
+                Log.d(TAG,"OnTick -> $millisUntilFinished")
+            }
+
+            override fun onFinish() {
+                //마지막에 실행할 구문
+                Log.d(TAG,"onFinish!!")
+                manager?.cancel(NOTIFICAIONCHANNELID)
+                stopForeground(true)
+                this.cancel()
+            }
+        }.start()
+
+    }
+
+    fun returnEventBus() : EventBusProvider {
+        return EventBusProvider.getinstance(this)
+    }
+
+    fun setFinishMusicInfo() {
+        var db = Room.databaseBuilder(applicationContext, AppDataBase::class.java,"finish_music_data").build()
+
+        Log.d(TAG,"데이터 저장 및 업데이트 -> ${mCurrentMusicInfo?.music_title} // ${mCurrentMusicInfo?.music_artist} // ${mCurrentMusicInfo?.music_uri}")
+
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                var check_music_data =
+                    db.FinishMusicInfoDao().getSelectFinishPlayData(Contacts.Admin_UserID)
+                if (check_music_data == null) {
+                    Log.d(TAG, "하아...1")
+                    db.FinishMusicInfoDao().insertFinshMusicInfo(FinishMusicInfoEntity(Contacts.Admin_UserID, mCurrentMusicInfo?.music_title, mCurrentMusicInfo?.music_artist, mCurrentMusicInfo?.music_uri))
+                } else {
+                    Log.d(TAG, "하아...2")
+                    db.FinishMusicInfoDao().updateFinishMusicData(Contacts.Admin_UserID, mCurrentMusicInfo?.music_title!!, mCurrentMusicInfo?.music_artist!!, mCurrentMusicInfo?.music_uri!!)
+                }
+                Log.d(TAG, "데이터 저장 및 업데이트 -> ${check_music_data} ${check_music_data?.finish_userid} // ${check_music_data?.finish_title} // ${check_music_data?.finish_artist} // ${check_music_data?.finish_uri}")
+            }catch (e : Exception){
+                e.printStackTrace()
+            }
+        }
+        showNotification()
+        musicPlayerActivity?.setUI()
+        mainActivity?.liveTitle?.value = mCurrentMusicInfo?.music_title
+        mainActivity?.liveSinger?.value = mCurrentMusicInfo?.music_artist
+        mainActivity?.ProgressUpdate()?.start()
+    }
+
+    fun foundDB(){
+        var db = Room.databaseBuilder(applicationContext, AppDataBase::class.java,"finish_music_data").build()
+        GlobalScope.launch {
+            var check_music_data = db.FinishMusicInfoDao().getSelectFinishPlayData(Contacts.Admin_UserID)
+            Log.d(TAG,"데이터 저장 및 업데이트123 -> ${check_music_data} ${check_music_data?.finish_title} // ${check_music_data?.finish_title} // ${check_music_data?.finish_artist} // ${check_music_data?.finish_uri}")
+        }
     }
 
 }

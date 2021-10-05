@@ -3,7 +3,6 @@ package com.dongdong.neonplayer.fragment
 import android.content.Context
 import android.content.Intent
 import android.graphics.Point
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,37 +14,43 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
 import com.dongdong.neonplayer.R
 import com.dongdong.neonplayer.activity.LoginActivity
+import com.dongdong.neonplayer.dialogactivity.QR_Dialog
 import com.dongdong.neonplayer.adapter.BannerAdapter
-import com.dongdong.neonplayer.adapter.Music24HtisItemAdapter
 import com.dongdong.neonplayer.adapter.NewMusicItemAdapter
 import com.dongdong.neonplayer.adapter.TodayNewMusicItemAdapter
-import com.dongdong.neonplayer.common.Contacts
+import com.dongdong.neonplayer.common.NetWorkState
 import com.dongdong.neonplayer.common.Util
 import com.dongdong.neonplayer.data.*
+import com.dongdong.neonplayer.dialogactivity.FindUserInfoDialog
 import com.dongdong.neonplayer.retrofit.RetroFitBuilder
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 
-class FragmentHome : Fragment(){
+class FragmentHome : Fragment(),View.OnClickListener{
 
     var btn_login_state : ImageView? = null
     var storage : FirebaseStorage? = null
+    var layout_qrcode : LinearLayout? = null
     var today_new_music_list : ArrayList<TodayNewMusicData>? = null
     var new_music_list : ArrayList<NewMusicData>? = null
     var banner_img_list : ArrayList<BannerImageData>? = null
+    var networkstate : Int? = 0
+    var tv_networkstate : TextView? = null
+    var livedata_today_new_music_list : MutableLiveData<ArrayList<TodayNewMusicData>>? = null
+    var livedata_new_music_list : MutableLiveData<ArrayList<NewMusicData>>? = null
+    var livedata_banner_img_list : MutableLiveData<ArrayList<BannerImageData>>? = null
+    var liveData_network_state : MutableLiveData<Int> = MutableLiveData()
     var today_new_music_recycleview : RecyclerView? = null                              // 따끈따끈 신상 음악 Recycleview
     var new_music_recycleview : RecyclerView? = null                                    // 최신 음악 Recycleview
     var banner_img_list_recycleview : RecyclerView? = null                              // 배너 Recycleview
@@ -53,12 +58,16 @@ class FragmentHome : Fragment(){
     var tv_user_id : TextView? = null
     var sliderViewPager : ViewPager2? = null
     var layoutIndicator : LinearLayout? = null
+    var qrDialog : QR_Dialog? = null
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val rootView : View = inflater.inflate(R.layout.fragment_home,container,false)
 
         mContext = rootView.context
+
+        layout_qrcode = rootView.findViewById(R.id.btn_qr_code)
+        layout_qrcode?.setOnClickListener(this)
 
         today_new_music_recycleview = rootView.findViewById(R.id.today_new_music_list)
         new_music_recycleview = rootView.findViewById(R.id.new_music_list)
@@ -76,16 +85,26 @@ class FragmentHome : Fragment(){
         new_music_list = arrayListOf<NewMusicData>()
         banner_img_list = arrayListOf<BannerImageData>()
 
-        getMusicList()
-        getBannerList()
-
         btn_login_state = rootView.findViewById(R.id.btn_login_state)
+        tv_networkstate = rootView.findViewById(R.id.tv_networkstate)
         btn_login_state?.setOnClickListener {
             var intent = Intent(context, LoginActivity::class.java)
             activity?.startActivity(intent)
         }
 
         return rootView
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        liveData_network_state.value = NetWorkState.getNetWorkState(mContext!!)
+        getMusicList()
+        getBannerList()
+        livedata_observer()
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
     fun getMusicList( ){
@@ -108,6 +127,7 @@ class FragmentHome : Fragment(){
                         Log.d("qwer123456","따끈따끈 신상 음악 데이터 타이: ${data[i].musictitle}")
                         var music_recomment = TodayNewMusicData(data[i].musictitle)
                         today_new_music_list?.add(music_recomment)
+                        livedata_today_new_music_list?.postValue(today_new_music_list)
                     }
                     today_new_music_recycleview?.adapter = TodayNewMusicItemAdapter(mContext!!,today_new_music_list!!)
                 }else{
@@ -119,23 +139,6 @@ class FragmentHome : Fragment(){
                 Toast.makeText(mContext,"따끈따끈 신상 음악 목록을 가져오는중 오류가 발생하였습니다.", Toast.LENGTH_SHORT).show()
             }
         })
-
-      /*  music_listRef?.listAll()?.addOnSuccessListener { metadata ->
-            for (item in metadata.items){
-                Log.d("qwer123456","오늘의 최신 음악 Item: ${item.name} // ${item.downloadUrl} // ${item.metadata} // }")
-                val ref = storageRef?.child("Recommend_Music_Mp3/${item.name}")
-                var music_recomment = TodayNewMusicData(item.name)
-
-                ref?.metadata?.addOnSuccessListener { metaitem ->
-                    Log.d("qwer123456","오늘의 최신 음악 Item 세팅 : ${metaitem.sizeBytes} // ${metaitem.contentType} // ${metaitem.name} }")
-                    today_new_music_list?.add(music_recomment)
-                    today_new_music_recycleview?.adapter = TodayNewMusicItemAdapter(mContext!!,today_new_music_list!!)
-                }?.addOnFailureListener { exception ->
-                    exception.printStackTrace()
-                }
-
-            }
-        }*/
 
         /**
          *  최신 음악 Adapter 세팅
@@ -150,6 +153,7 @@ class FragmentHome : Fragment(){
                         Log.d("qwer123456","최신 음악  데이터 타이: ${data[i].musictitle}")
                         var music_recomment = NewMusicData(data[i].musictitle)
                         new_music_list?.add(music_recomment)
+                        livedata_new_music_list?.postValue(new_music_list)
                     }
                     new_music_recycleview?.adapter = NewMusicItemAdapter(mContext!!,new_music_list!!)
                 }else{
@@ -161,25 +165,6 @@ class FragmentHome : Fragment(){
                 Toast.makeText(mContext,"최신 음악 리스트를 가져오는중 오류가 발생하였습니다.", Toast.LENGTH_SHORT).show()
             }
         })
-
-        /*music_listRef?.listAll()?.addOnSuccessListener { metadata ->
-            for (item in metadata.items){
-                Log.d("qwer123456","최신 음악 Item: ${item.name} // ${item.downloadUrl} // ${item.metadata} // }")
-                val ref = storageRef?.child("Recommend_Music_Mp3/${item.name}")
-                var music_recomment = NewMusicData(item.name)
-
-                ref?.metadata?.addOnSuccessListener { metaitem ->
-                    Log.d("qwer123456","최신 음악 Item 세팅 : ${metaitem.sizeBytes} // ${metaitem.contentType} // ${metaitem.name} }")
-                    new_music_list?.add(music_recomment)
-                    new_music_recycleview?.adapter = NewMusicItemAdapter(mContext!!,new_music_list!!)
-                }?.addOnFailureListener { exception ->
-                    exception.printStackTrace()
-                }
-
-            }
-        }?.addOnFailureListener { exception ->
-            exception.printStackTrace()
-        }*/
 
     }
 
@@ -201,6 +186,7 @@ class FragmentHome : Fragment(){
 
                         var music_recomment = BannerImageData(banner_uri)
                         banner_img_list?.add(music_recomment)
+                        livedata_banner_img_list?.postValue(banner_img_list)
                     }
                     banner_img_list_recycleview?.adapter = BannerAdapter(mContext!!,banner_img_list!!,get_device_size())
                 }else{
@@ -271,6 +257,30 @@ class FragmentHome : Fragment(){
         display?.getSize(size)
 
         return size
+    }
+
+    fun livedata_observer(){
+        livedata_today_new_music_list?.observe(viewLifecycleOwner, Observer {
+            today_new_music_list = it
+        })
+        livedata_new_music_list?.observe(viewLifecycleOwner, Observer {
+            new_music_list = it
+        })
+        livedata_banner_img_list?.observe(viewLifecycleOwner, Observer {
+            banner_img_list = it
+        })
+        liveData_network_state?.observe(viewLifecycleOwner, Observer {
+            tv_networkstate?.text = "$it"
+        })
+    }
+
+    override fun onClick(v: View?) {
+        when(v?.id) {
+            R.id.btn_qr_code -> {
+                qrDialog = QR_Dialog(mContext!!)
+                qrDialog?.start(get_device_size())
+            }
+        }
     }
 
 }

@@ -2,18 +2,21 @@ package com.dongdong.neonplayer.room
 
 import android.content.Context
 import androidx.room.*
+import com.dongdong.neonplayer.room.Dao.FinishMusicInfoDao
 import com.dongdong.neonplayer.room.Dao.MyMusicPlayListDao
 import com.dongdong.neonplayer.room.Dao.UserDao
+import com.dongdong.neonplayer.room.Entity.FinishMusicInfoEntity
 import com.dongdong.neonplayer.room.Entity.MyMusicPlayListEntity
 import com.dongdong.neonplayer.room.Entity.UserEntitiy
 import com.dongdong.neonplayer.room.Entity.UserTypeConverter
 
-@Database(entities = [UserEntitiy::class, MyMusicPlayListEntity::class], version = 1,exportSchema = false)
+@Database(entities = [UserEntitiy::class, MyMusicPlayListEntity::class, FinishMusicInfoEntity::class], version = 1,exportSchema = false)
 @TypeConverters(UserTypeConverter::class)
 abstract class AppDataBase : RoomDatabase(){
 
     abstract fun UserDao() : UserDao
     abstract fun MyMusicPlayListDao() : MyMusicPlayListDao
+    abstract fun FinishMusicInfoDao() : FinishMusicInfoDao
 
     companion object{
         private val DB_NAME = "app-db"

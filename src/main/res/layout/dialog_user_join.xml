@@ -89,7 +89,7 @@
                     android:privateImeOptions="defaultInputmode=korean"
                     android:singleLine="true"
                     android:textColor="@color/white_color"
-                    android:textColorHint="@color/lighr_gray"
+                    android:textColorHint="@color/light_gray_3"
                     android:textSize="6pt" />
 
             </LinearLayout><!--이름 입력 구역 끝-->
@@ -97,7 +97,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/lighr_gray" />
+                android:background="@color/light_gray_3" />
 
             <!--주민등록번호 입력 구역 시작-->
             <LinearLayout
@@ -135,7 +135,7 @@
                     android:inputType="number"
                     android:singleLine="true"
                     android:textColor="@color/white_color"
-                    android:textColorHint="@color/lighr_gray"
+                    android:textColorHint="@color/light_gray_3"
                     android:textSize="6pt" />
 
                     <TextView
@@ -158,7 +158,7 @@
                         android:inputType="numberPassword"
                         android:singleLine="true"
                         android:textColor="@color/white_color"
-                        android:textColorHint="@color/lighr_gray"
+                        android:textColorHint="@color/light_gray_3"
                         android:textSize="6pt" />
 
                 </LinearLayout>
@@ -168,7 +168,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/lighr_gray" />
+                android:background="@color/light_gray_3" />
 
             <!--ID 입력 구역 시작-->
             <LinearLayout
@@ -210,7 +210,7 @@
                     android:privateImeOptions="defaultInputmode=korean"
                     android:singleLine="true"
                     android:textColor="@color/white_color"
-                    android:textColorHint="@color/lighr_gray"
+                    android:textColorHint="@color/light_gray_3"
                     android:textSize="6pt" />
 
                     <LinearLayout
@@ -238,7 +238,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/lighr_gray" />
+                android:background="@color/light_gray_3" />
 
             <!--Password 입력 구역 시작-->
             <LinearLayout
@@ -272,7 +272,7 @@
                     android:privateImeOptions="defaultInputmode=korean"
                     android:singleLine="true"
                     android:textColor="@color/white_color"
-                    android:textColorHint="@color/lighr_gray"
+                    android:textColorHint="@color/light_gray_3"
                     android:textSize="5pt" />
 
             </LinearLayout><!--Password 입력 구역 끝-->
@@ -280,7 +280,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/lighr_gray" />
+                android:background="@color/light_gray_3" />
 
             <!--Password Check 입력 구역 시작-->
             <LinearLayout
@@ -322,7 +322,7 @@
                         android:privateImeOptions="defaultInputmode=korean"
                         android:singleLine="true"
                         android:textColor="@color/white_color"
-                        android:textColorHint="@color/lighr_gray"
+                        android:textColorHint="@color/light_gray_3"
                         android:textSize="5pt" />
 
                     <LinearLayout
@@ -353,7 +353,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/lighr_gray" />
+                android:background="@color/light_gray_3" />
 
             <!--Email 입력 구역 시작-->
             <LinearLayout
@@ -417,7 +417,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/lighr_gray" />
+                android:background="@color/light_gray_3" />
 
             <!--전화번호 입력 구역 시작-->
             <LinearLayout
@@ -472,7 +472,7 @@
                             android:hint="전화번호"
                             android:inputType="number"
                             android:textColor="@color/white_color"
-                            android:textColorHint="@color/lighr_gray"
+                            android:textColorHint="@color/light_gray_3"
                             android:textSize="5pt" />
 
                     </LinearLayout><!--핸드폰 입력 구역 끝-->
@@ -491,7 +491,7 @@
                             android:layout_height="wrap_content"
                             android:textColor="@color/white_color"
                             android:textStyle="bold"
-                            android:textColorHint="@color/lighr_gray"
+                            android:textColorHint="@color/light_gray_3"
                             android:backgroundTint="#ffffff"
                             android:hint="인증번호 6자리"
                             android:gravity="center"
@@ -536,7 +536,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/lighr_gray" />
+                android:background="@color/light_gray_3" />
 
             <!--주소 입력 구역 시작-->
             <LinearLayout
@@ -580,7 +580,7 @@
                             android:backgroundTint="#ffffff"
                             android:text=""
                             android:hint="   주소 검색"
-                            android:textColorHint="@color/lighr_gray"
+                            android:textColorHint="@color/light_gray_3"
                             android:gravity="left|center"
                             android:textColor="@color/white_color"
                             android:textStyle="bold"
@@ -613,7 +613,7 @@
                             android:layout_weight="1"
                             android:hint="상세주소"
                             android:backgroundTint="#ffffff"
-                            android:textColorHint="@color/lighr_gray"
+                            android:textColorHint="@color/light_gray_3"
                             android:textStyle="bold"
                             android:textSize="5pt"
                             android:textColor="@color/white_color"/>

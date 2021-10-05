@@ -52,11 +52,9 @@ class ViewPagerNeonChartList : Fragment {
 
         var rootview : ViewGroup = inflater.inflate(R.layout.viewpager_neonchartlist,container,false) as ViewGroup
         mContext = rootview.context
-        music_neon_recyclearview = rootview.findViewById(R.id.music_neonlist)
-        val musicneonhitmanager : RecyclerView.LayoutManager = GridLayoutManager(rootview.context,1,LinearLayoutManager.VERTICAL,false)
-        music_neon_recyclearview?.layoutManager = musicneonhitmanager
-        music_neon_list = arrayListOf<NeonChartData>()
+        setBingId(rootview)
         getMusicNeonList()
+        setMusicNeonChartRecyclearView(rootview)
         return rootview
     }
 
@@ -84,27 +82,16 @@ class ViewPagerNeonChartList : Fragment {
             }
         })
 
-        /*var storageRef = storage?.getReferenceFromUrl("gs://snsproject-fb39b.appspot.com/")
-        var music_pop_ref = storage?.reference?.child("Recommend_Music_Mp3")
-        Log.d("ViewPagerNeonChartList","getMusicNeonList: ${storageRef?.child("Recommend_Music_Mp3")?.listAll()}")
+    }
 
-        *//**
-         * Neon Chart 목록 가져오기
-         *//*
-        music_pop_ref?.listAll()?.addOnSuccessListener { meta_neon->
-            for (items in meta_neon.items){
-                Log.d("ViewPagerNeonChartList","Neon Chart Item: ${items.name} // ${items.downloadUrl} // ${items.metadata} // }")
-                val ref = storageRef?.child("Recommend_Music_Mp3/${items.name}")
-                var music_recomment = NeonChartData(items.name)
-                ref?.metadata?.addOnSuccessListener { metaitem->
-                    Log.d("ViewPagerNeonChartList","Neon Chart Item 세팅 : ${metaitem.sizeBytes} // ${metaitem.contentType} // ${metaitem.name} }")
-                    music_neon_list?.add(music_recomment)
-                    music_neon_recyclearview?.adapter = MusicNeonChartItemAdapter(mContext!!,music_neon_list!!)
-                }?.addOnFailureListener { exception ->
-                    exception.printStackTrace()
-                }
-            }
-        }*/
+    fun setMusicNeonChartRecyclearView(mrootview : View){
+        val musicneonchartmanager : RecyclerView.LayoutManager = GridLayoutManager(mrootview.context,1,LinearLayoutManager.VERTICAL,false)
+        music_neon_recyclearview?.layoutManager = musicneonchartmanager
+        music_neon_list = arrayListOf<NeonChartData>()
+    }
+
+    fun setBingId(mrootview : View){
+        music_neon_recyclearview = mrootview.findViewById(R.id.music_neonlist)
     }
 
 }

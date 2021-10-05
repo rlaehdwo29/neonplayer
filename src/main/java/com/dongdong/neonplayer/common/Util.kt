@@ -31,7 +31,7 @@ class Util {
                     Build.TYPE.length % 10 +
                     Build.USER.length % 10
 
-            return deviceId;
+            return deviceId
 
         }
 
@@ -54,6 +54,13 @@ class Util {
          */
         fun getParseUri(data : String?) : Uri {
             return Uri.parse("${Contacts.baseurl}$data")
+        }
+
+        /**
+         * 다음 음악 URI 가공
+         */
+        fun getNextParseUri(data : String?) : Uri {
+            return Uri.parse("$data")
         }
 
         /**

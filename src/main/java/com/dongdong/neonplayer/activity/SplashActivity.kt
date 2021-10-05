@@ -7,21 +7,29 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.widget.Toast
 import androidx.annotation.Nullable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.dongdong.neonplayer.R
 import com.dongdong.neonplayer.room.AppDataBase
 
 
 class SplashActivity : AppCompatActivity(){
 
     private val PERMISSIONS_REQUEST_RESULT = 1
-
+    var handler = Handler()
+    
     override fun onCreate(@Nullable savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        checkForPhoneStatePermission()
+        setContentView(R.layout.activity_splash)
+
+        handler?.postDelayed({
+            checkForPhoneStatePermission()
+        },1500)
+
     }
 
     private fun checkForPhoneStatePermission() {

@@ -10,7 +10,7 @@ import androidx.annotation.NonNull
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.dongdong.neonplayer.R
 import com.dongdong.neonplayer.common.Util
-import com.dongdong.neonplayer.firebase.User
+import com.dongdong.neonplayer.firebase.CUser
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
@@ -89,7 +89,7 @@ class FindIdDialog (context: Context) {
                 Log.d("qwer123465","여긴오나11? ${dataSnapshot.children.count()}")
                 if (dataSnapshot.children.count() > 0) {
                     for (childSnapshot in dataSnapshot.children) {
-                        var post = childSnapshot.getValue(User::class.java)
+                        var post = childSnapshot.getValue(CUser::class.java)
                         Log.d("qwer123465", "여긴오나? $post // ${post?.user_name} // $name")
                         if (post?.user_name?.equals(name)!!) {
                             Util.ShowAlertDialog(dialog.context,"알림", "회원님의 ID는 ${post.user_id} 입니다.")

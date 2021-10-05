@@ -7,9 +7,6 @@ import android.provider.BaseColumns
 
 class MyPlaylistContract {
 
-    constructor()
-
-
     object MyPlaylistEntry : BaseColumns {
         const val TABLE_NAME = "MyPlaylist"
         const val COLUMN_NAME_PLAYLIST = "playlist_name"

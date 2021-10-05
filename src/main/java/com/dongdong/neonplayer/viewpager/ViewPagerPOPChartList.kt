@@ -53,11 +53,9 @@ class ViewPagerPOPChartList : Fragment {
 
         var rootview : ViewGroup = inflater.inflate(R.layout.viewpager_popsonglist,container,false) as ViewGroup
         mContext = rootview.context
-        music_pop_recyclearview = rootview.findViewById(R.id.music_poplist)
-        val musicpopmanager : RecyclerView.LayoutManager = GridLayoutManager(rootview.context,1,LinearLayoutManager.VERTICAL,false)
-        music_pop_recyclearview?.layoutManager = musicpopmanager
-        music_pop_list = arrayListOf<PopChartData>()
+        setBingId(rootview)
         getMusicPopitList()
+        setMusicNeonChartRecyclearView(rootview)
         return rootview
     }
 
@@ -84,28 +82,17 @@ class ViewPagerPOPChartList : Fragment {
                 Toast.makeText(mContext,"음악 리스트를 가져오는중 오류가 발생하였습니다.", Toast.LENGTH_SHORT).show()
             }
         })
-
-       /* var storageRef = storage?.getReferenceFromUrl("gs://snsproject-fb39b.appspot.com/")
-        var music_pop_ref = storage?.reference?.child("Recommend_Music_Mp3")
-        Log.d("ViewPagerPOPChartList","getMusicPopitList 볼까? ${storageRef?.child("Recommend_Music_Mp3")?.listAll()}")
-
-        *//**
-         * POP 목록 가져오기
-         *//*
-        music_pop_ref?.listAll()?.addOnSuccessListener { meta_pop->
-            for (items in meta_pop.items){
-                Log.d("ViewPagerPOPChartList","POP Item: ${items.name} // ${items.downloadUrl} // ${items.metadata} // }")
-                val ref = storageRef?.child("Recommend_Music_Mp3/${items.name}")
-                var music_recomment = PopChartData(items.name)
-                ref?.metadata?.addOnSuccessListener { metaitem->
-                    Log.d("ViewPagerPOPChartList","POP Item 세팅 : ${metaitem.sizeBytes} // ${metaitem.contentType} // ${metaitem.name} }")
-                    music_pop_list?.add(music_recomment)
-                    music_pop_recyclearview?.adapter = MusicPopChartItemAdapter(mContext!!,music_pop_list!!)
-                }?.addOnFailureListener { exception ->
-                    exception.printStackTrace()
-                }
-            }
-        }*/
     }
+
+    fun setMusicNeonChartRecyclearView(mrootview : View){
+        val musicneonchartmanager : RecyclerView.LayoutManager = GridLayoutManager(mrootview.context,1,LinearLayoutManager.VERTICAL,false)
+        music_pop_recyclearview?.layoutManager = musicneonchartmanager
+        music_pop_list = arrayListOf<PopChartData>()
+    }
+
+    fun setBingId(mrootview : View){
+        music_pop_recyclearview = mrootview.findViewById(R.id.music_poplist)
+    }
+
 
 }

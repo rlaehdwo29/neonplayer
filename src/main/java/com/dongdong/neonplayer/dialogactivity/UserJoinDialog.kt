@@ -15,7 +15,7 @@ import androidx.annotation.NonNull
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.dongdong.neonplayer.R
 import com.dongdong.neonplayer.common.Util
-import com.dongdong.neonplayer.firebase.User
+import com.dongdong.neonplayer.firebase.CUser
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
@@ -399,7 +399,7 @@ class UserJoinDialog(context : Context) {
         phonenum:String,
         address:String) {
 
-        val user = User(udid,name,jumin,age,gender,id,pw,email,phonetype,phonenum,address)
+        val user = CUser(udid,name,jumin,age,gender,id,pw,email,phonetype,phonenum,address)
         database!!.child("CUser").child("User_Info").child(id).setValue(user)
 
     }
@@ -417,7 +417,7 @@ class UserJoinDialog(context : Context) {
                 // Get Post object and use the values to update the UI
                 if (dataSnapshot.children.count() > 0) {
                     for (childSnapshot in dataSnapshot.children) {
-                        var post = childSnapshot.getValue(User::class.java)
+                        var post = childSnapshot.getValue(CUser::class.java)
                         Util.ShowAlertDialog(dialog.context, "알림", "사용할 수 없는 아이디입니다.")
                         //Toast.makeText(dialog.context, "사용할 수 없는 아이디입니다.", Toast.LENGTH_SHORT).show()
                         join_medt_id.text.clear()
@@ -453,7 +453,7 @@ class UserJoinDialog(context : Context) {
                 Log.d("qwer123456","주민번호 중복 체크123: ${jumin} // ${databaseSnapshot.children.count()}")
                 if (databaseSnapshot.children.count() > 0){
                     for (childrenSnapshot in databaseSnapshot.children){
-                        var post = childrenSnapshot.getValue(User::class.java)
+                        var post = childrenSnapshot.getValue(CUser::class.java)
                         Log.d("qwer123456","주민번호 중복 체크: ${post} // ${post?.user_jumin}")
                         jumin_check_state = false
                     }

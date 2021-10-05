@@ -31,6 +31,30 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"/>
 
+                <LinearLayout
+                    android:id="@+id/btn_qr_code"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="10pt"
+                    android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/btn_qr_code"
+                    android:layout_gravity="center" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="QR체크인"
+                        android:textStyle="bold"
+                        android:textColor="@color/black_color"
+                        android:layout_gravity="center"
+                        android:textSize="6pt"/>
+
+                    </LinearLayout>
+
                 <ImageView
                     android:id="@+id/btn_login_state"
                     android:layout_width="wrap_content"

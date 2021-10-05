@@ -43,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="아티스트"
-            android:textColor="@color/lighr_gray"
+            android:textColor="@color/light_gray_3"
             android:textSize="5pt"
             android:textStyle="bold"
             android:layout_weight="1"

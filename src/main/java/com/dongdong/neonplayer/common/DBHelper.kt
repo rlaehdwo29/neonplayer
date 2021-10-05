@@ -18,6 +18,14 @@ companion object{
                 MyPlaylistContract.MyPlaylistEntry.COLUMN_NAME_PLAYLIST_TYPE + " TEXT NOT NULL " +
                 ");"
 
+    private val SQL_CREATE_FINAL_PLAYDATA =
+        "CREATE TABLE IF NOT EXISTS " + MyPlaylistContract.MyPlaylistEntry.TABLE_NAME + " (" +
+                // MyPlaylistContract.MyPlaylistEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                MyPlaylistContract.MyPlaylistEntry.COLUMN_NAME_PLAYLIST + " TEXT NOT NULL , " +
+                MyPlaylistContract.MyPlaylistEntry.COLUMN_NAME_MUSIC_ID + " INTEGER NOT NULL, " +
+                MyPlaylistContract.MyPlaylistEntry.COLUMN_NAME_PLAYLIST_TYPE + " TEXT NOT NULL " +
+                ");"
+
     private var sSingleton: DBHelper? = null
 
 

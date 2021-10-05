@@ -3,8 +3,6 @@ package com.dongdong.neonplayer.activity
 import android.content.Context
 import android.graphics.Point
 import android.media.MediaPlayer
-import android.media.MediaPlayer.OnPreparedListener
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -12,13 +10,12 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.dongdong.neonplayer.R
 import com.dongdong.neonplayer.callback.LoginCallbacks
-import com.dongdong.neonplayer.common.Contacts
 import com.dongdong.neonplayer.common.Util
 import com.dongdong.neonplayer.data.VideoInfo
 import com.dongdong.neonplayer.dialogactivity.FindUserInfoDialog
 import com.dongdong.neonplayer.dialogactivity.UserJoinDialog
 import com.dongdong.neonplayer.firebase.LoginState
-import com.dongdong.neonplayer.firebase.User
+import com.dongdong.neonplayer.firebase.CUser
 import com.dongdong.neonplayer.retrofit.RetroFitBuilder
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -157,7 +154,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener,LoginCallbacks{
                 Log.w("Login FireBaseData", "getData${dataSnapshot.children.count()}")
                 if (dataSnapshot.children.count() > 0 ) {
                     for (childrenSnapshot in dataSnapshot.children) {
-                        var post = childrenSnapshot.getValue(User::class.java)
+                        var post = childrenSnapshot.getValue(CUser::class.java)
                         Log.w("Login FireBaseData", "getData${post}")
                         if (post?.user_pw.equals(userpw)) {
 
