@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container_qr"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent100">
+
+    <LinearLayout
+        android:id="@+id/linearLayout4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|center_vertical"
+        android:background="@color/transparent100"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <ImageButton
+            android:id="@+id/btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:scaleType="matrix"
+            android:src="@drawable/cancel"
+            android:layout_marginTop="5pt"
+            android:layout_marginBottom="5pt"
+            android:background="@null"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="10pt"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout4"
+        app:layout_constraintVertical_bias="0.0"
+        tools:layout_editor_absoluteX="0dp"
+        android:background="@color/white_color">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="입장을 위한 QR코드"
+            android:textColor="@color/black_color"
+            android:textSize="8pt"
+            android:textStyle="bold"
+            android:layout_marginBottom="10pt"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="이용하려는 시설에 QR코드로 체크인하거나 명부에 전화번호 \n 대신 안심번호를 기재하세요."
+            android:textColor="@color/black_color"
+            android:textSize="6pt"
+            android:textStyle="normal"
+            android:gravity="center"
+            android:layout_marginBottom="10pt"/>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_gravity="center"
+            android:layout_margin="8pt">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingTop="5pt"
+                android:paddingBottom="5pt"
+                android:background="@drawable/qr_border_top">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="개인안심번호   "
+                    android:textSize="6pt"
+                    android:textColor="@color/black_color" />
+
+                <TextView
+                    android:id="@+id/private_num"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00저00누"
+                    android:textColor="@color/black_color"
+                    android:textSize="7pt"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/qr_border_middle">
+
+                <ImageView
+                    android:id="@+id/img_qr"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/count_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="6pt"
+                    android:textStyle="bold"
+                    android:textColor="@color/black_color"
+                    android:gravity="center"
+                    android:paddingBottom="5pt"/>
+
+            </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:paddingTop="5pt"
+                    android:paddingBottom="5pt"
+                    android:orientation="horizontal"
+                    android:background="@drawable/qr_border_bottom">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="흔들어 열기"
+                        android:textStyle="bold"
+                        android:textColor="@color/black_color"
+                        android:textSize="6pt"
+                        android:layout_marginRight="5pt"/>
+
+                    <Switch
+                        android:id="@+id/shake_action"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
